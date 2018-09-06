@@ -1,0 +1,50 @@
+Map:
+CamelCase           = No Terminal
+"Entre comillas"    = Terminal Simple
+lowercase           = Terminal con Valor
+[...]               = Opcional
+----------------------------------------
+
+Program -> PreModuleList
+
+PreModuleList -> "Sub Main()" \n StatementList \n "End Sub" \n ModuleList | Function \n PreModuleList | Procedure \n PreModuleList | Declaration \n PreModuleList
+
+ModuleList -> Function \n ModuleList | Procedure \n ModuleList | Declaration \n ModuleList | " "
+
+Function -> "Function" id ["(" ArgumentList ")"] "As" type \n  StatementList \n "End Function"
+
+Procedure -> ["Public" | "Private"] ["Static"] "Sub" id ["(" ArgumentList ")"] \n StatementList \n "End Sub"
+
+ArgumentList -> Argument"," ArgumentList | Argument
+Argument -> id "As" type
+
+
+StatementList -> Statement \n StatementList | Statement \n
+Statement -> Declaration | Assignment | Conditional | Loop | IO | " "
+
+Declaration -> "Dim" id "As" "Type" ["=" Expression]
+Assignment -> id "=" Expression
+
+Expression -> Expression additionOperator Expression 
+            | Expression multiplicationOperator Expression 
+            | Expression relationalOperator Expression
+            | Expression "AND" Expression
+            | Expression "OR" Expression
+            | "NOT" Expression
+            | id 
+            | integer 
+            | string 
+            | char
+
+IO -> "PRINT" Expression | "ReadLine" id
+
+Conditional -> "If" Expression "Then" \n StatementList \n [ConditionalElseIf] [ConditionalElse] "End If"
+ConditionalElseIf -> "ElseIf" Expression "Then" \n StatementList \n [ConditionalElseIf]
+ConditionalElse -> "Else" \n StatementList \n
+
+Loop -> For | While
+
+For -> "For" Expression "To" integer \n StatementList \n "Next"
+
+While -> "Do" \n StatementList \n "Loop While" Expression
+

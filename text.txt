@@ -7,7 +7,7 @@ Dim intCounter As Integer
 
 Intcount = Intcount + 1
 Function Hypotenuse (A As integer, B As Integer) As Integer
-Hypotenuse = sqr (A2 + B2)
+    Hypotenuse = sqr (A2 + B2)
 End Function
 
 Public Sub Main()

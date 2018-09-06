@@ -35,6 +35,8 @@ typeChar = "Char"
 type = {typeInteger}|{typeBoolean}|{typeString}|{typeChar}
 quote ="\'"
 doubleQuote = "\""
+BooleanTrue = "True"
+BooleanFalse = "False"
 
 //Relational Operators
 lessThan = "<"
@@ -87,8 +89,8 @@ elseif = "ElseIf"
 endIf = "End If"
 
 //While
-while = "While"
-whileEnd = "Wend"
+do = "Do"
+loopWhile = "Loop While"
 
 //FOR
 for = "For"
@@ -101,11 +103,15 @@ whiteSpace =  (\t|\f|" ")+
 char = {doubleQuote}({letter}|{digit}){doubleQuote}
 string = {doubleQuote}({letter}|{digit})*{doubleQuote}
 comment = {quote}[^\r\n]*{endOfLine}
+Main = "Sub Main()"
 
 %state STRING
 %%
 
 <YYINITIAL> {
+  {Main}                  { return symbol(sym.MAIN); }
+  {BooleanTrue}              { return symbol(sym.TRUE); }
+  {BooleanFalse}             { return symbol(sym.FALSE); }
   {coma}                     { return symbol(sym.COMA); }
   {period}                   { return symbol(sym.PERIOD); }
   {not}                      { return symbol(sym.NOT); }
@@ -133,8 +139,8 @@ comment = {quote}[^\r\n]*{endOfLine}
   {then}                     { return symbol(sym.THEN); }
   {else}                     { return symbol(sym.ELSE); }
   {elseif}                   { return symbol(sym.ELSEIF); }
-  {while}                    { return symbol(sym.WHILE); }
-  {whileEnd}                 { return symbol(sym.WHILEEND); }
+  {do}                    { return symbol(sym.DO); }
+  {loopWhile}                 { return symbol(sym.LOOPWHILE); }
   {for}                      { return symbol(sym.FOR); }
   {to}                       { return symbol(sym.TO); }
   {next}                     { return symbol(sym.NEXT); }
