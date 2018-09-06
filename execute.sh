@@ -1,0 +1,1 @@
+sh compile-flex.sh && sh compile-flex2.sh && sh run.sh
