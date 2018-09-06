@@ -1,0 +1,32 @@
+import java.io.*;
+import java_cup.runtime.*;
+
+action code
+{:
+
+:}
+
+parser code
+{:
+
+:}
+
+terminal COMA, PERIOD;
+terminal NOT, AND, OR;
+terminal IF, THEN, ELSE, ELSEIF, ENDIF;
+terminal WHILE, WHILEEND;
+terminal FOR, TO, NEXT;
+terminal MOD;
+terminal READLINE, PRINT;
+terminal ENDSUB, ENDFUNCTION, STATIC, PRIVATE, PUBLIC, SUB, FUNCTION;
+terminal DIM, AS;
+terminal OPENPARENTHESIS, CLOSEPARENTHESIS;
+terminal WHITESPACE, ENDOFLINE;
+terminal String STRING, ID, TYPE, INTEGER, CHAR;
+terminal String RELATIONALOPERATOR, MULTIPLICATIONOPERATOR, ADDITIONOPERATOR;
+
+non terminal program;
+
+start with program;
+
+program ::= ;

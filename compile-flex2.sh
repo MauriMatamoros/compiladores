@@ -1,0 +1,1 @@
+javac -cp '/Users/mmatamoros/Documents/compiladores-1/Cup/java-cup-11b-runtime.jar:.' sym.java && javac -cp '/Users/mmatamoros/Documents/compiladores-1/Cup/java-cup-11b-runtime.jar:.' Lexer.java
