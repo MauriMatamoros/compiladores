@@ -1,2 +1,5 @@
 *.class
-*~
+*.*~
+sym.java
+Lexer.java
+parser.java

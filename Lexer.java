@@ -846,7 +846,7 @@ class Lexer implements java_cup.runtime.Scanner {
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1: 
-            { System.out.println("Error en la linea: " + yyline+1 + " Col " + yycolumn+1 + "El texto fue " + yytext());
+            { System.out.println("Error en la linea: " + yyline+1 + " Col " + yycolumn+1 + " El texto fue " + yytext());
             }
           case 43: break;
           case 2: 
