@@ -109,7 +109,7 @@ Main = "Sub Main()"
 %%
 
 <YYINITIAL> {
-  {Main}                  { return symbol(sym.MAIN); }
+  {Main}                     { return symbol(sym.MAIN); }
   {BooleanTrue}              { return symbol(sym.TRUE); }
   {BooleanFalse}             { return symbol(sym.FALSE); }
   {coma}                     { return symbol(sym.COMA); }
@@ -139,8 +139,8 @@ Main = "Sub Main()"
   {then}                     { return symbol(sym.THEN); }
   {else}                     { return symbol(sym.ELSE); }
   {elseif}                   { return symbol(sym.ELSEIF); }
-  {do}                    { return symbol(sym.DO); }
-  {loopWhile}                 { return symbol(sym.LOOPWHILE); }
+  {do}                       { return symbol(sym.DO); }
+  {loopWhile}                { return symbol(sym.LOOPWHILE); }
   {for}                      { return symbol(sym.FOR); }
   {to}                       { return symbol(sym.TO); }
   {next}                     { return symbol(sym.NEXT); }
