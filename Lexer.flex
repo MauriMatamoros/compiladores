@@ -65,14 +65,9 @@ additionOperators = {addition}|{substraction}
 //Reserved Words
 dim = "dim"
 as = "As"
-static = "Static"
 end = "End"
-endFunction = "End Function"
 print = "Print"
-private = "Private"
-public = "Public"
 sub = "Sub"
-endSub = "End Sub"
 function = "Function"
 openParenthesis = "("
 closeParenthesis = ")"
@@ -86,7 +81,6 @@ if = "If"
 then = "Then"
 else = "Else"
 elseif = "ElseIf"
-endIf = "End If"
 
 //While
 do = "Do"
@@ -103,7 +97,7 @@ whiteSpace =  (\t|\f|" ")+
 char = {doubleQuote}({letter}|{digit}){doubleQuote}
 string = {doubleQuote}({letter}|{digit})*{doubleQuote}
 comment = {quote}[^\r\n]*{endOfLine}
-Main = "Sub Main()"
+Main = "Main"
 
 %state STRING
 %%
@@ -116,9 +110,7 @@ Main = "Sub Main()"
   {period}                   { return symbol(sym.PERIOD); }
   {not}                      { return symbol(sym.NOT); }
   {readLine}                 { return symbol(sym.READLINE); }
-  {endSub}                   { return symbol(sym.ENDSUB); }
-  {endIf}                    { return symbol(sym.ENDIF); }
-  {endFunction}              { return symbol(sym.ENDFUNCTION); }
+  {end}                      { return symbol(sym.END); }
   {comment}                  {}
   {type}                     { return symbol(sym.TYPE ,yytext()); }
   {mod}                      { return symbol(sym.MOD); }
@@ -130,10 +122,7 @@ Main = "Sub Main()"
   {or}                       { return symbol(sym.OR); }
   {dim}                      { return symbol(sym.DIM); }
   {as}                       { return symbol(sym.AS); }
-  {static}                   { return symbol(sym.STATIC); }
   {print}                    { return symbol(sym.PRINT); }
-  {private}                  { return symbol(sym.PRIVATE); }
-  {public}                   { return symbol(sym.PUBLIC); }
   {sub}                      { return symbol(sym.SUB); }
   {if}                       { return symbol(sym.IF); }
   {then}                     { return symbol(sym.THEN); }
