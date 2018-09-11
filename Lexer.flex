@@ -19,7 +19,7 @@ import java_cup.runtime.*;
     return new Symbol(type, yyline, yycolumn);
   }
   private Symbol symbol(int type, Object value) {
-    System.out.println("<" + sym.terminalNames[type] + ", " + (String)value + ">");
+    System.out.println("<" + sym.terminalNames[type] + ", " + (String)value + " >");
     return new Symbol(type, yyline, yycolumn, value);
   }
 %}
