@@ -84,7 +84,8 @@ elseif = "ElseIf"
 
 //While
 do = "Do"
-loopWhile = "Loop While"
+loop = "Loop" 
+while= "While"
 
 //FOR
 for = "For"
@@ -103,6 +104,7 @@ Main = "Main"
 %%
 
 <YYINITIAL> {
+  {equalTo}                 { return symbol(sym.EQUALTO); }
   {Main}                    { return symbol(sym.MAIN); }
   {BooleanTrue}             { return symbol(sym.TRUE); }
   {BooleanFalse}            { return symbol(sym.FALSE); }
@@ -129,7 +131,8 @@ Main = "Main"
   {else}                    { return symbol(sym.ELSE); }
   {elseif}                  { return symbol(sym.ELSEIF); }
   {do}                      { return symbol(sym.DO); }
-  {loopWhile}               { return symbol(sym.LOOPWHILE); }
+  {loop}                    { return symbol(sym.LOOP); }
+  {while}                   { return symbol(sym.WHILE); }
   {for}                     { return symbol(sym.FOR); }
   {to}                      { return symbol(sym.TO); }
   {next}                    { return symbol(sym.NEXT); }

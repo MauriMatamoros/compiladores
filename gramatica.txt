@@ -11,15 +11,18 @@ PreModuleList -> "Sub" "Main" "(" ")" \n StatementList \n "End" "Sub" \n ModuleL
 
 ModuleList -> Function \n ModuleList | Procedure \n ModuleList | Declaration \n ModuleList | " "
 
-Function -> "Function" id ["(" ArgumentList ")"] "As" type \n  StatementList \n "End" "Function"
+Function -> "Function" id ["(" PreArgumentList ")"] "As" type \n  StatementList "End" "Function"
 
-Procedure -> "Sub" id ["(" ArgumentList ")"] \n StatementList \n "End" "Sub"
+Procedure -> "Sub" id ["(" PreArgumentList ")"] \n StatementList "End" "Sub"
+
+PreArgumentList -> ArgumentList | " "
 
 ArgumentList -> Argument"," ArgumentList | Argument
 Argument -> id "As" type
 
+PreStatementList -> StatementList \n | " "
 
-StatementList -> Statement \n StatementList | Statement \n
+StatementList -> Statement \n StatementList | Statement
 Statement -> Declaration | Assignment | Conditional | Loop | IO | " "
 
 Declaration -> "Dim" id "As" "Type" ["=" Expression]
@@ -38,13 +41,12 @@ Expression -> Expression additionOperator Expression
 
 IO -> "PRINT" Expression | "ReadLine" id
 
-Conditional -> "If" Expression "Then" \n StatementList \n [ConditionalElseIf] [ConditionalElse] "End" "If"
-ConditionalElseIf -> "ElseIf" Expression "Then" \n StatementList \n [ConditionalElseIf]
-ConditionalElse -> "Else" \n StatementList \n
+Conditional -> "If" Expression "Then" \n PreStatementList \n [ConditionalElseIf] [ConditionalElse] "End" "If"
+ConditionalElseIf -> "ElseIf" Expression "Then" \n PreStatementList [ConditionalElseIf]
+ConditionalElse -> "Else" \n PreStatementList
 
 Loop -> For | While
 
-For -> "For" Expression "To" integer \n StatementList \n "Next"
+For -> "For" Expression "To" integer \n PreStatementList "Next"
 
-While -> "Do" \n StatementList \n "Loop While" Expression
-
+While -> "Do" \n PreStatementList "Loop" "While" Expression

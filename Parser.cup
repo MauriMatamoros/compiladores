@@ -14,12 +14,12 @@ parser code
 terminal COMA, PERIOD;
 terminal NOT, AND, OR;
 terminal IF, THEN, ELSE, ELSEIF;
-terminal DO, LOOPWHILE;
+terminal DO, LOOP, WHILE;
 terminal FOR, TO, NEXT;
 terminal MOD;
 terminal READLINE, PRINT;
 terminal SUB, FUNCTION;
-terminal DIM, AS;
+terminal DIM, AS, EQUALTO;
 terminal OPENPARENTHESIS, CLOSEPARENTHESIS;
 terminal WHITESPACE, ENDOFLINE;
 terminal TRUE, FALSE;
@@ -28,8 +28,106 @@ terminal END;
 terminal String STRING, ID, TYPE, INTEGER, CHAR;
 terminal String RELATIONALOPERATOR, MULTIPLICATIONOPERATOR, ADDITIONOPERATOR;
 
-non terminal program;
+non terminal Program, PreModuleList, ModuleList, Function;
+non terminal Procedure, PreArgumentList, ArgumentList, Argument;
+non terminal PreStatementList, PreStatementList, Statement;
+non terminal Declaration, Assignment, Expression, IO;
+non terminal Conditional, ConditionalElseIf, ConditionalElse;
+non terminal Loop, For, While;
 
-start with program;
+start with Program;
 
-program ::= ;
+Program ::= PreModuleList;
+
+PreModuleList       ::= SUB MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList END SUB ENDOFLINE ModuleList
+                    | Function ENDOFLINE PreModuleList
+                    | Procedure ENDOFLINE PreModuleList
+                    | Declaration ENDOFLINE PreModuleList
+;
+
+ModuleList          ::= Function ENDOFLINE ModuleList
+                    | Procedure ENDOFLINE ModuleList
+                    | Declaration ENDOFLINE ModuleList
+                    |
+;
+
+Function            ::= FUNCTION ID OPENPARENTHESIS ArgumentList CLOSEPARENTHESIS AS TYPE ENDOFLINE PreStatementList END FUNCTION
+                    | FUNCTION ID AS TYPE ENDOFLINE PreStatementList END FUNCTION
+;
+
+Procedure           ::= SUB ID OPENPARENTHESIS ArgumentList CLOSEPARENTHESIS ENDOFLINE PreStatementList END SUB
+                    | SUB ID ENDOFLINE PreStatementList END SUB
+;
+
+PreArgumentList     ::= ArgumentList
+                    |
+;
+
+ArgumentList        ::= Argument COMA ArgumentList 
+                    | Argument
+;
+
+Argument            ::= ID AS TYPE
+;
+
+PreStatementList    ::= StatementList ENDOFLINE
+                    |
+;
+
+StatementList       ::= Statement ENDOFLINE StatementList 
+                    | Statement
+;
+
+Statement           ::= Declaration
+                    | Assignment
+                    | Conditional
+                    | Loop
+                    | IO
+                    |
+;
+
+Declaration         ::= DIM ID AS TYPE
+                    | DIM ID AS TYPE EQUALTO Expression
+;
+
+Assignment          ::= ID EQUALTO Expression
+;
+
+IO                  ::= PRINT Expression
+                    | READLINE ID
+;
+
+Conditional         ::= IF Expression THEN ENDOFLINE PreStatementList ConditionalElseIf ConditionalElse END IF
+                    | IF Expression THEN ENDOFLINE PreStatementList ConditionalElseIf END IF
+                    | IF Expression THEN ENDOFLINE PreStatementList ConditionalElse END IF
+                    | IF Expression THEN ENDOFLINE PreStatementList END IF
+;
+
+ConditionalElseIf   ::= ELSEIF Expression THEN ENDOFLINE PreStatementList ConditionalElseIf
+                    | ELSEIF Expression THEN ENDOFLINE PreStatementList
+;
+
+ConditionalElse     ::= ELSE ENDOFLINE PreStatementList
+;
+
+Loop                ::= For 
+                    | While
+;
+
+For                 ::= FOR Expression TO INTEGER ENDOFLINE PreStatementList NEXT
+;
+
+While               ::= DO ENDOFLINE PreStatementList LOOP WHILE Expression
+;
+
+Expression          ::= Expression ADDITIONOPERATOR Expression
+                    | Expression MULTIPLICATIONOPERATOR Expression
+                    | Expression RELATIONALOPERATOR Expression
+                    | Expression AND Expression
+                    | Expression OR Expression
+                    | NOT Expression
+                    | ID
+                    | INTEGER
+                    | STRING
+                    | CHAR
+;
