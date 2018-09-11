@@ -9,6 +9,7 @@ action code
 parser code
 {:
 
+
 :}
 
 terminal COMA, PERIOD;
@@ -31,9 +32,16 @@ terminal String RELATIONALOPERATOR, MULTIPLICATIONOPERATOR, ADDITIONOPERATOR;
 non terminal Program, PreModuleList, ModuleList, Function;
 non terminal Procedure, PreArgumentList, ArgumentList, Argument;
 non terminal PreStatementList, PreStatementList, Statement;
-non terminal Declaration, Assignment, Expression, IO;
+non terminal Declaration, Assignment, ExpressionList, Expression, IO;
 non terminal Conditional, ConditionalElseIf, ConditionalElse;
 non terminal Loop, For, While;
+
+precedence left AND, OR;
+precedence left RELATIONALOPERATOR;
+precedence left ADDITIONOPERATOR;
+precedence left MULTIPLICATIONOPERATOR;
+precedence left NOT;
+
 
 start with Program;
 
@@ -120,6 +128,10 @@ For                 ::= FOR Expression TO INTEGER ENDOFLINE PreStatementList NEX
 While               ::= DO ENDOFLINE PreStatementList LOOP WHILE Expression
 ;
 
+ExpressionList      ::= Expression COMA ExpressionList
+                    | Expression
+;
+
 Expression          ::= Expression ADDITIONOPERATOR Expression
                     | Expression MULTIPLICATIONOPERATOR Expression
                     | Expression RELATIONALOPERATOR Expression
@@ -130,4 +142,6 @@ Expression          ::= Expression ADDITIONOPERATOR Expression
                     | INTEGER
                     | STRING
                     | CHAR
+                    | ID OPENPARENTHESIS ExpressionList CLOSEPARENTHESIS
+                    | ID OPENPARENTHESIS CLOSEPARENTHESIS
 ;

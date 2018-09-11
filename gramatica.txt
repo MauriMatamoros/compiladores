@@ -28,6 +28,8 @@ Statement -> Declaration | Assignment | Conditional | Loop | IO | " "
 Declaration -> "Dim" id "As" "Type" ["=" Expression]
 Assignment -> id "=" Expression
 
+ExpressionList -> Expression"," ExpressionList | Expression
+
 Expression -> Expression additionOperator Expression 
             | Expression multiplicationOperator Expression 
             | Expression relationalOperator Expression
@@ -38,6 +40,7 @@ Expression -> Expression additionOperator Expression
             | integer 
             | string 
             | char
+            | id "("[ExpressionList]")"
 
 IO -> "PRINT" Expression | "ReadLine" id
 
