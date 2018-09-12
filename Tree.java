@@ -41,6 +41,10 @@ class ForStatement extends Statement{
         this.statements = statements;
         this.description = "For " + integer;
     }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {assignment, statements};
+    }
 }
 class WhileStatement extends Statement{
     Expression expression;
@@ -51,6 +55,10 @@ class WhileStatement extends Statement{
         this.statements = statements;
         this.description = "While";
     }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {expression, statements};
+    }
 }
 class AssignmentStatement extends Statement{
     String id;
@@ -60,6 +68,10 @@ class AssignmentStatement extends Statement{
         this.id = id;
         this.expression = expression;
         this.description = "Assignment " + this.id;
+    }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {expression};
     }
 }
 class ReadStatement extends Statement{
@@ -77,6 +89,10 @@ class WriteStatement extends Statement{
         this.expression = expression;
         this.description = "Write";
     }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {expression};
+    }
 }
 class FunctionCallStatement extends Statement{
     String id;
@@ -86,6 +102,10 @@ class FunctionCallStatement extends Statement{
         this.id = id;
         this.expressions = expressions;
         this.description = "FunctionCall " + this.id;
+    }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {expressions};
     }
 }
 class ConditionalStatement extends Statement{
@@ -99,6 +119,10 @@ class ConditionalStatement extends Statement{
         this.statementsIfFalse = statementsIfFalse;
         this.description = "If";
     }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {expression, statementsIfTrue, statementsIfFalse};
+    }
 }
 
 class ModuleList<T> extends Tree {
@@ -108,33 +132,45 @@ class ModuleList<T> extends Tree {
         super(line, column);
         this.description = "ModuleList";
     }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {tail};
+    }
 }
 
 class ProcedureHelper extends Tree {
     String id;
     ArgumentHelper[] arguments;
-    Statement[] statementList;
-    public ProcedureHelper(int line, int column, String id, ArgumentHelper arguments, Statement[] statementList) {
+    Statement[] statements;
+    public ProcedureHelper(int line, int column, String id, ArgumentHelper arguments, Statement[] statements) {
         super(line, column);
         this.id = id;
         this.arguments = arguments;
-        this.statementList = statementList;
+        this.statements = statements;
         this.description = "Procedure " + this.id; 
+    }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {arguments, statementList};
     }
 }
 
 class FunctionHelper extends Tree {
     String id;
     ArgumentHelper[] arguments;
-    Statement[] statementList;
+    Statement[] statements;
     String type;
-    public FunctionHelper(int line, int column, String id, ArgumentHelper arguments, Statement[] statementList, String type) {
+    public FunctionHelper(int line, int column, String id, ArgumentHelper arguments, Statement[] statements, String type) {
         super(line, column);
         this.id = id;
         this.arguments = arguments;
-        this.statementList = statementList;
+        this.statementList = statements;
         this.type = type;
         this.description = "Function " + this.id + " " + this.type;
+    }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {arguments, statements};
     }
 }
 
@@ -166,6 +202,10 @@ class BinaryExpression extends Expression {
         this.operator = operator;
         this.description = "Binary Expression  " + operator;
     }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {left, right};
+    }
 }
 
 class UnaryExpression extends Expression {
@@ -176,6 +216,10 @@ class UnaryExpression extends Expression {
         this.right = right;
         this.operator = operator;
         this.description = "Unary Expression  " + operator;
+    }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {right};
     }
 }
 
@@ -205,6 +249,10 @@ class FunctionCallExpression extends Expression {
         this.id = id;
         this.arguments = arguments;
         this.description = "FunctionCall " + this.id;
+    }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {arguments};
     }
 }
 
