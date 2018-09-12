@@ -8,7 +8,13 @@ action code
 
 parser code
 {:
+    public void syntax_error(Symbol s){
+        report_error("Error sintactico en linea: " + (s.left + 1) + " y columna: " + (s.right + 1) + "\n El simbolo fue: ", sym.terminalNames[s.sym]);
+    }
 
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        report_fatal_error("Error sintactico fatal: " + s + "\n", null);
+    }
 
 :}
 
@@ -22,7 +28,7 @@ terminal READLINE, PRINT;
 terminal SUB, FUNCTION;
 terminal DIM, AS, EQUALTO;
 terminal OPENPARENTHESIS, CLOSEPARENTHESIS;
-terminal WHITESPACE, ENDOFLINE;
+terminal ENDOFLINE;
 terminal TRUE, FALSE;
 terminal MAIN;
 terminal END;
@@ -31,15 +37,15 @@ terminal String RELATIONALOPERATOR, MULTIPLICATIONOPERATOR, ADDITIONOPERATOR;
 
 non terminal Program, PreModuleList, ModuleList, Function;
 non terminal Procedure, PreArgumentList, ArgumentList, Argument;
-non terminal PreStatementList, PreStatementList, Statement;
-non terminal Declaration, Assignment, ExpressionList, Expression, IO;
+non terminal PreStatementList, StatementList, Statement;
+non terminal Declaration, Assignment, ExpressionList, Expression, IO, FunctionCall;
 non terminal Conditional, ConditionalElseIf, ConditionalElse;
 non terminal Loop, For, While;
 
 precedence left AND, OR;
 precedence left RELATIONALOPERATOR;
 precedence left ADDITIONOPERATOR;
-precedence left MULTIPLICATIONOPERATOR;
+precedence left MULTIPLICATIONOPERATOR, MOD;
 precedence left NOT;
 
 
@@ -67,23 +73,27 @@ Procedure           ::= SUB ID OPENPARENTHESIS ArgumentList CLOSEPARENTHESIS END
                     | SUB ID ENDOFLINE PreStatementList END SUB
 ;
 
-PreArgumentList     ::= ArgumentList
+PreArgumentList     ::= ArgumentList 
                     |
 ;
 
 ArgumentList        ::= Argument COMA ArgumentList 
-                    | Argument
+                    | Argument 
 ;
 
 Argument            ::= ID AS TYPE
 ;
 
-PreStatementList    ::= StatementList ENDOFLINE
+PreStatementList    ::= StatementList
                     |
 ;
 
 StatementList       ::= Statement ENDOFLINE StatementList 
-                    | Statement
+                    | Statement ENDOFLINE
+;
+
+FunctionCall        ::= ID OPENPARENTHESIS ExpressionList CLOSEPARENTHESIS
+                    | ID OPENPARENTHESIS CLOSEPARENTHESIS
 ;
 
 Statement           ::= Declaration
@@ -91,6 +101,7 @@ Statement           ::= Declaration
                     | Conditional
                     | Loop
                     | IO
+                    | FunctionCall
                     |
 ;
 
@@ -144,4 +155,7 @@ Expression          ::= Expression ADDITIONOPERATOR Expression
                     | CHAR
                     | ID OPENPARENTHESIS ExpressionList CLOSEPARENTHESIS
                     | ID OPENPARENTHESIS CLOSEPARENTHESIS
+                    | TRUE
+                    | FALSE
+                    | Expression MOD Expression
 ;

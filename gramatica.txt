@@ -22,8 +22,10 @@ Argument -> id "As" type
 
 PreStatementList -> StatementList \n | " "
 
+FunctionCall -> id "(" [ExpressionList] ")"
+
 StatementList -> Statement \n StatementList | Statement
-Statement -> Declaration | Assignment | Conditional | Loop | IO | " "
+Statement -> Declaration | Assignment | Conditional | Loop | IO | FunctionCall | " "
 
 Declaration -> "Dim" id "As" "Type" ["=" Expression]
 Assignment -> id "=" Expression
