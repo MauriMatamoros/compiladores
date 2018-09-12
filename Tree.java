@@ -5,10 +5,12 @@ public abstract class Tree {
         this.line = line;
         this.column = column;
     }
-
     @Override
     public String toString() {
         return description;
+    }
+    public Tree[] getChildren(){
+        return null;
     }
 }
 
@@ -27,7 +29,6 @@ class DeclarationStatement extends Statement{
         this.type = type;
         this.description = "Declaration " + this.id + " " + this.type;
     }
-    
 }
 class ForStatement extends Statement{
     AssignmentStatement assignment;
@@ -61,14 +62,20 @@ class AssignmentStatement extends Statement{
         this.description = "Assignment " + this.id;
     }
 }
-class IOStatement extends Statement{
+class ReadStatement extends Statement{
     String id;
-    Expression expression;
-    public IOStatement(int line, int column, String id, Expression expression) {
+    public ReadStatement(int line, int column, String id) {
         super(line, column);
         this.id = id;
+        this.description = "Read " + this.id;
+    }
+}
+class WriteStatement extends Statement{
+    Expression expression;
+    public WriteStatement(int line, int column, Expression expression) {
+        super(line, column);
         this.expression = expression;
-        this.description = "IOStatement " + this.id;
+        this.description = "Write";
     }
 }
 class FunctionCallStatement extends Statement{
@@ -103,36 +110,42 @@ class ModuleList<T> extends Tree {
     }
 }
 
-class ProcedureHelper {
+class ProcedureHelper extends Tree {
     String id;
     ArgumentHelper[] arguments;
     Statement[] statementList;
-    public ProcedureHelper(String id, ArgumentHelper arguments, Statement[] statementList) {
+    public ProcedureHelper(int line, int column, String id, ArgumentHelper arguments, Statement[] statementList) {
+        super(line, column);
         this.id = id;
         this.arguments = arguments;
         this.statementList = statementList;
+        this.description = "Procedure " + this.id; 
     }
 }
 
-class FunctionHelper {
+class FunctionHelper extends Tree {
     String id;
     ArgumentHelper[] arguments;
     Statement[] statementList;
     String type;
-    public FunctionHelper(String id, ArgumentHelper arguments, Statement[] statementList, String type) {
+    public FunctionHelper(int line, int column, String id, ArgumentHelper arguments, Statement[] statementList, String type) {
+        super(line, column);
         this.id = id;
         this.arguments = arguments;
         this.statementList = statementList;
         this.type = type;
+        this.description = "Function " + this.id + " " + this.type;
     }
 }
 
-class ArgumentHelper {
+class ArgumentHelper extends Tree {
     String id;
     String type;
-    public ArgumentHelper(String id, String type) {
+    public ArgumentHelper(int line, int column, String id, String type) {
+        super(line, column);
         this.id = id;
         this.type = type;
+        this.description = "Argument " + this.id + " " + this.type;
     }
 }
 
