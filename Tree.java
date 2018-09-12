@@ -14,13 +14,13 @@ public abstract class Tree {
     }
 }
 
-abstract class Statement extends Tree {
-    protected Statement(int line, int column) {
+abstract class StatementClass extends Tree {
+    protected StatementClass(int line, int column) {
         super(line, column);
     }
 }
 
-class DeclarationStatement extends Statement{
+class DeclarationStatement extends StatementClass{
     String id;
     String type;
     public DeclarationStatement(int line, int column, String id, String type) {
@@ -30,11 +30,11 @@ class DeclarationStatement extends Statement{
         this.description = "Declaration " + this.id + " " + this.type;
     }
 }
-class ForStatement extends Statement{
+class ForStatement extends StatementClass{
     AssignmentStatement assignment;
     int integer;
-    Statement[] statements;
-    public ForStatement(int line, int column, AssignmentStatement assignment, int integer, Statement[] statements) {
+    StatementClass[] statements;
+    public ForStatement(int line, int column, AssignmentStatement assignment, int integer, StatementClass[] statements) {
         super(line, column);
         this.assignment =  assignment;
         this.integer = integer;
@@ -46,10 +46,10 @@ class ForStatement extends Statement{
         return new Tree[] {assignment, statements};
     }
 }
-class WhileStatement extends Statement{
+class WhileStatement extends StatementClass{
     Expression expression;
-    Statement[] statements;
-    public WhileStatement(int line, int column, Expression expression, Statement[] statements) {
+    StatementClass[] statements;
+    public WhileStatement(int line, int column, Expression expression, StatementClass[] statements) {
         super(line, column);
         this.expression = expression;
         this.statements = statements;
@@ -60,7 +60,7 @@ class WhileStatement extends Statement{
         return new Tree[] {expression, statements};
     }
 }
-class AssignmentStatement extends Statement{
+class AssignmentStatement extends StatementClass{
     String id;
     Expression expression;
     public AssignmentStatement(int line, int column, String id, Expression expression) {
@@ -74,7 +74,7 @@ class AssignmentStatement extends Statement{
         return new Tree[] {expression};
     }
 }
-class ReadStatement extends Statement{
+class ReadStatement extends StatementClass{
     String id;
     public ReadStatement(int line, int column, String id) {
         super(line, column);
@@ -82,7 +82,7 @@ class ReadStatement extends Statement{
         this.description = "Read " + this.id;
     }
 }
-class WriteStatement extends Statement{
+class WriteStatement extends StatementClass{
     Expression expression;
     public WriteStatement(int line, int column, Expression expression) {
         super(line, column);
@@ -94,7 +94,7 @@ class WriteStatement extends Statement{
         return new Tree[] {expression};
     }
 }
-class FunctionCallStatement extends Statement{
+class FunctionCallStatement extends StatementClass{
     String id;
     Expression[] expressions;
     public FunctionCallStatement(int line, int column, String id, Expression[] expressions) {
@@ -108,11 +108,11 @@ class FunctionCallStatement extends Statement{
         return new Tree[] {expressions};
     }
 }
-class ConditionalStatement extends Statement{
+class ConditionalStatement extends StatementClass{
     Expression expression;
-    Statement[] statementsIfTrue;
-    Statement[] statementsIfFalse;
-    public ConditionalStatement(int line, int column, Expression expression, Statement[] statementsIfTrue, Statement[] statementsIfFalse) {
+    StatementClass[] statementsIfTrue;
+    StatementClass[] statementsIfFalse;
+    public ConditionalStatement(int line, int column, Expression expression, StatementClass[] statementsIfTrue, StatementClass[] statementsIfFalse) {
         super(line, column);
         this.expression = expression;
         this.statementsIfTrue = statementsIfTrue;
@@ -141,8 +141,8 @@ class ModuleList<T> extends Tree {
 class ProcedureHelper extends Tree {
     String id;
     ArgumentHelper[] arguments;
-    Statement[] statements;
-    public ProcedureHelper(int line, int column, String id, ArgumentHelper arguments, Statement[] statements) {
+    StatementClass[] statements;
+    public ProcedureHelper(int line, int column, String id, ArgumentHelper arguments, StatementClass[] statements) {
         super(line, column);
         this.id = id;
         this.arguments = arguments;
@@ -158,9 +158,9 @@ class ProcedureHelper extends Tree {
 class FunctionHelper extends Tree {
     String id;
     ArgumentHelper[] arguments;
-    Statement[] statements;
+    StatementClass[] statements;
     String type;
-    public FunctionHelper(int line, int column, String id, ArgumentHelper arguments, Statement[] statements, String type) {
+    public FunctionHelper(int line, int column, String id, ArgumentHelper arguments, StatementClass[] statements, String type) {
         super(line, column);
         this.id = id;
         this.arguments = arguments;
