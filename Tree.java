@@ -1,7 +1,6 @@
 public abstract class Tree {
     protected String description;
     private int line, column;
-
     protected Tree(int line, int column) {
         this.line = line;
         this.column = column;
