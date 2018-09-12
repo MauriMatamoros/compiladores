@@ -52,6 +52,6 @@ ConditionalElse -> "Else" \n PreStatementList
 
 Loop -> For | While
 
-For -> "For" Expression "To" integer \n PreStatementList "Next"
+For -> "For" Assignment "To" integer \n PreStatementList "Next"
 
 While -> "Do" \n PreStatementList "Loop" "While" Expression

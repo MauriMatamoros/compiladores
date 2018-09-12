@@ -133,7 +133,7 @@ Loop                ::= For
                     | While
 ;
 
-For                 ::= FOR Expression TO INTEGER ENDOFLINE PreStatementList NEXT
+For                 ::= FOR Assignment TO INTEGER ENDOFLINE PreStatementList NEXT
 ;
 
 While               ::= DO ENDOFLINE PreStatementList LOOP WHILE Expression
