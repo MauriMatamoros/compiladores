@@ -3,6 +3,18 @@ import java_cup.runtime.*;
 
 action code
 {:
+    public static String repeat(int count) {
+        return repeat(count, " ");
+    }
+    public void Print(Tree tree, int depth) {
+        System.out.println(repeat(depth) + tree.toString());
+        Tree[] children = tree.getChildren();
+        if (children != null) {
+            for (Tree child : childre) { 
+                Print(child, depth + 1);
+            }
+        }
+    }
 
 :}
 
@@ -35,8 +47,8 @@ terminal END;
 terminal String STRING, ID, TYPE, INTEGER, CHAR;
 terminal String RELATIONALOPERATOR, MULTIPLICATIONOPERATOR, ADDITIONOPERATOR;
 
-non terminal Tree Program;
-non terminal ModuleList PreModuleList, ModuleList;
+non terminal Program;
+non terminal ModuleListClass PreModuleList, ModuleList;
 non terminal FunctionHelper Function;
 non terminal ProcedureHelper Procedure;
 non terminal ArgumentHelper[] PreArgumentList, ArgumentList;
@@ -62,7 +74,8 @@ precedence left NOT;
 
 start with Program;
 
-Program ::= PreModuleList;
+Program ::= PreModuleList:list {: Print(list, 0) :}
+;
 
 PreModuleList       ::= SUB MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList END SUB ENDOFLINE ModuleList
                     | Function ENDOFLINE PreModuleList

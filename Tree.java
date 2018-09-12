@@ -125,12 +125,12 @@ class ConditionalStatement extends StatementClass{
     }
 }
 
-class ModuleList<T> extends Tree {
+class ModuleListClass<T> extends Tree {
     T module;
-    ModuleList tail;
-    public ModuleList(int line, int column) {
+    ModuleListClass tail;
+    public ModuleListClass(int line, int column) {
         super(line, column);
-        this.description = "ModuleList";
+        this.description = "ModuleListClass";
     }
     @Override
     public Tree[] getChildren(){
