@@ -179,7 +179,16 @@ class ModuleListClass<T> extends Tree {
     }
     @Override
     public Tree[] getChildren(){
-        return new Tree[] {(Tree) module, tail};
+        if (tail == null) {
+            Tree[] children = { ((Tree) module) };
+            return children;
+        } else {
+            Tree[] t = tail.getChildren();
+            Tree[] children = new Tree[1 + t.length];
+            children[0] = ((Tree) module);
+            System.arraycopy(t, 0, children, 1, t.length);
+            return children;
+        }
     }
 }
 
