@@ -62,7 +62,7 @@ non terminal AssignmentStatement Assignment;
 non terminal ListClass ExpressionList;
 non terminal Expression Expression;
 non terminal FunctionCallStatement FunctionCall;
-non terminal ConditionalStatement Conditional, ConditionalElseIf;
+non terminal ConditionalStatement Conditional;
 non terminal ListClass ConditionalElse;
 non terminal ForStatement For;
 non terminal WhileStatement While;
@@ -177,51 +177,79 @@ Assignment          ::= ID:id EQUALTO Expression:exp
                         {: RESULT = new AssignmentStatement(id.left, id.right, id, exp); :}
 ;
 
-IO                  ::= PRINT Expression
-                    | READLINE ID
+IO                  ::= PRINT:print Expression:exp
+                        {: RESULT =  new WriteStatement(print.left, print.right, exp); :}
+                    | READLINE:read ID:id
+                        {: RESULT = new ReadStatement(read.left, read.right, id); :}
 ;
 
-Conditional         ::= IF Expression THEN ENDOFLINE PreStatementList ConditionalElseIf ConditionalElse END IF
-                    | IF Expression THEN ENDOFLINE PreStatementList ConditionalElseIf END IF
-                    | IF Expression THEN ENDOFLINE PreStatementList ConditionalElse END IF
-                    | IF Expression THEN ENDOFLINE PreStatementList END IF
+Conditional         ::= IF:condIf Expression:exp THEN ENDOFLINE PreStatementList:pslist ConditionalElse:condElse END IF
+                        {: RESULT = new ConditionalStatement(condIf.left, condIf.right, exp, pslist, condElse); :}
+                    | IF:condIf Expression:exp THEN ENDOFLINE PreStatementList:pslist END IF
+                        {: RESULT = new ConditionalStatement(condIf.left, condIf.right, exp, pslist, null); :}
 ;
 
-ConditionalElseIf   ::= ELSEIF Expression THEN ENDOFLINE PreStatementList ConditionalElseIf
-                    | ELSEIF Expression THEN ENDOFLINE PreStatementList
+ConditionalElse     ::= ELSE ENDOFLINE PreStatementList:pslist
+                        {: RESULT = pslist; :}
+                    | ELSEIF:cond Expression:exp THEN ENDOFLINE PreStatementList:pslist ConditionalElse:condElse
+                        {: RESULT = new ListClass(cond.left, cond.right, new ConditionalStatement(cond.left, cond.right, exp, pslist, condElse)); :}
+                    | ELSEIF:cond Expression:exp THEN ENDOFLINE PreStatementList:pslist
+                        {: RESULT = new ListClass(cond.left, cond.right, new ConditionalStatement(cond.left, cond.right, exp, pslist, null));  :}
 ;
 
-ConditionalElse     ::= ELSE ENDOFLINE PreStatementList
+Loop                ::= For:fs
+                        {: RESULT = fs; :}
+                    | While:ws
+                        {: RESULT = ws; :}
 ;
 
-Loop                ::= For 
-                    | While
+For                 ::= FOR:fs Assignment:ass TO INTEGER:i ENDOFLINE PreStatementList:pslist NEXT
+                        {: RESULT = new ForStatement(fs.left, fs.right, ass, i, pslist); :}
 ;
 
-For                 ::= FOR Assignment TO INTEGER ENDOFLINE PreStatementList NEXT
+While               ::= DO:d ENDOFLINE PreStatementList:pslist LOOP WHILE Expression:exp
+                        {: RESULT = new WhileStatement(d.left, d.right, exp, pslist); :}
 ;
 
-While               ::= DO ENDOFLINE PreStatementList LOOP WHILE Expression
+ExpressionList      ::= Expression:exp COMA ExpressionList:elist
+                        {:
+                            elist.Add(exp);
+                            RESULT = elist; 
+                        :}
+                    | Expression:exp
+                        {: RESULT = new ListClass<Expression> (exp.line, exp.column, exp); :}
 ;
 
-ExpressionList      ::= Expression COMA ExpressionList
-                    | Expression
-;
-
-Expression          ::= Expression ADDITIONOPERATOR Expression
-                    | Expression MULTIPLICATIONOPERATOR Expression
-                    | Expression RELATIONALOPERATOR Expression
-                    | Expression AND Expression
-                    | Expression OR Expression
-                    | NOT Expression
-                    | ID
-                    | INTEGER
-                    | STRING
-                    | CHAR
-                    | ID OPENPARENTHESIS ExpressionList CLOSEPARENTHESIS
-                    | ID OPENPARENTHESIS CLOSEPARENTHESIS
-                    | TRUE
+Expression          ::= Expression:expL ADDITIONOPERATOR:opp Expression:expR
+                        {: RESULT = new BinaryExpression(expL.line, expL.column, expL, opp, expR); :}
+                    | Expression:expL MULTIPLICATIONOPERATOR:opp Expression:expR
+                        {: RESULT = new BinaryExpression(expL.line, expL.column, expL, opp, expR); :}
+                    | Expression:expL RELATIONALOPERATOR:opp Expression:expR
+                        {: RESULT = new BinaryExpression(expL.line, expL.column, expL, opp, expR); :}
+                    | Expression:expL AND Expression:expR
+                        {: RESULT = new BinaryExpression(expL.line, expL.column, expL, "AND", expR); :}
+                    | Expression:expL OR Expression:expR
+                        {: RESULT = new BinaryExpression(expL.line, expL.column, expL, "OR", expR); :}
+                    | Expression:expL MOD Expression:expR
+                        {: RESULT = new BinaryExpression(expL.line, expL.column, expL, "MOD", expR); :}
+                    | NOT:not Expression:exp
+                        {: RESULT = new UnaryExpression(not.left, not.right, "NOT", exp); :}
+                    | ID:id
+                        {: RESULT = new IdExpression(id.left, id.right, id); :}
+                    | INTEGER:i
+                        {: RESULT = new LiteralExpression<Integer> (i.left, i.right, Integer.parseInt(i)); :}
+                    | STRING:s
+                        {: RESULT = new LiteralExpression<String> (s.left, s.right, s); :}
+                    | CHAR:c
+                        {: RESULT = new LiteralExpression<Character> (c.left, c.right, c.charAt(0)); :}
+                    | TRUE 
+                        {: RESULT = new LiteralExpression<Integer> (i.left, i.right, -1); :}
                     | FALSE
-                    | Expression MOD Expression
-                    | OPENPARENTHESIS Expression CLOSEPARENTHESIS
+                        {: RESULT = new LiteralExpression<Integer> (i.left, i.right, 0); :}
+                    | ID:id OPENPARENTHESIS ExpressionList:elist CLOSEPARENTHESIS
+                        {: RESULT = new FunctionCallExpression(id.left, id.right, id, elist); :}
+                    | ID:id OPENPARENTHESIS CLOSEPARENTHESIS
+                        {: RESULT = new FunctionCallExpression(id.left, id.right, id, null); :}
+                    | OPENPARENTHESIS Expression:exp CLOSEPARENTHESIS
+                        {: RESULT = exp; :}
 ;

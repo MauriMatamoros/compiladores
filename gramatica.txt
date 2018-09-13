@@ -47,9 +47,9 @@ Expression -> Expression additionOperator Expression
 
 IO -> "PRINT" Expression | "ReadLine" id
 
-Conditional -> "If" Expression "Then" \n PreStatementList \n [ConditionalElseIf] [ConditionalElse] "End" "If"
-ConditionalElseIf -> "ElseIf" Expression "Then" \n PreStatementList [ConditionalElseIf]
+Conditional -> "If" Expression "Then" \n PreStatementList \n [ConditionalElse] "End" "If"
 ConditionalElse -> "Else" \n PreStatementList
+                 | "ElseIf" Expression "Then" \n PreStatementList [ConditionalElse]
 
 Loop -> For | While
 

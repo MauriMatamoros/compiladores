@@ -30,6 +30,8 @@ class ListClass<T> extends Tree {
     }
     public void Add(T element) {
         this.elements.add(0, element);
+        this.line = element.line;
+        this.column = element.column;
     }
 }
 
@@ -276,16 +278,16 @@ class IdExpression extends Expression {
 
 class FunctionCallExpression extends Expression {
     String id;
-    ListClass<ArgumentHelper> arguments;
-    public FunctionCallExpression(int line, int column, String id, ListClass<ArgumentHelper> arguments) {
+    ListClass<Expression> expressions;
+    public FunctionCallExpression(int line, int column, String id, ListClass<Expression> expressions) {
         super(line, column);
         this.id = id;
-        this.arguments = arguments;
+        this.expressions = expressions;
         this.description = "FunctionCall " + this.id;
     }
     @Override
     public Tree[] getChildren(){
-        return new Tree[] {arguments};
+        return new Tree[] {expressions};
     }
 }
 
