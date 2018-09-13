@@ -4,14 +4,16 @@ import java_cup.runtime.*;
 action code
 {:
     public static String repeat(int count) {
-        return repeat(count, " ");
+        return repeat(count, "   ");
     }
     public void Print(Tree tree, int depth) {
         System.out.println(repeat(depth) + tree.toString());
         Tree[] children = tree.getChildren();
         if (children != null) {
             for (Tree child : childre) { 
-                Print(child, depth + 1);
+                if (child != null) {
+                    Print(child, depth + 1);
+                }
             }
         }
     }
@@ -51,17 +53,17 @@ non terminal Program;
 non terminal ModuleListClass PreModuleList, ModuleList;
 non terminal FunctionHelper Function;
 non terminal ProcedureHelper Procedure;
-non terminal ArgumentHelper[] PreArgumentList, ArgumentList;
+non terminal ListClass PreArgumentList, ArgumentList;
 non terminal ArgumentHelper Argument;
-non terminal StatementClass[] PreStatementList, StatementList;
+non terminal ListClass PreStatementList, StatementList;
 non terminal StatementClass Statement, Loop, IO;
 non terminal DeclarationStatement Declaration;
 non terminal AssignmentStatement Assignment;
-non terminal Expression[] ExpressionList;
+non terminal ListClass ExpressionList;
 non terminal Expression Expression;
 non terminal FunctionCallStatement FunctionCall;
 non terminal ConditionalStatement Conditional, ConditionalElseIf;
-non terminal StatementClass[] ConditionalElse;
+non terminal ListClass ConditionalElse;
 non terminal ForStatement For;
 non terminal WhileStatement While;
 
@@ -77,63 +79,102 @@ start with Program;
 Program ::= PreModuleList:list {: Print(list, 0) :}
 ;
 
-PreModuleList       ::= SUB MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList END SUB ENDOFLINE ModuleList
-                    | Function ENDOFLINE PreModuleList
-                    | Procedure ENDOFLINE PreModuleList
-                    | Declaration ENDOFLINE PreModuleList
+PreModuleList       ::= SUB:sub MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList:slist END SUB ENDOFLINE ModuleList:mlist 
+                        {: RESULT = new ModuleListClass(sub.left, sub.right, mlist, new ProcedureHelper(sub.left, sub.right, "Main", null, slist)); :}
+                    | Function:func ENDOFLINE PreModuleList:pmlist
+                        {: RESULT = new ModuleListClass(func.line, func.column, pmlist, func); :}
+                    | Procedure:proc ENDOFLINE PreModuleList:pmlist
+                        {: RESULT = new ModuleListClass(proc.line, proc.column, pmlist, proc); :}
+                    | Declaration:dec ENDOFLINE PreModuleList:pmlist
+                        {: RESULT = new ModuleListClass(dec.line, dec.column, pmlist, dec); :}
 ;
 
-ModuleList          ::= Function ENDOFLINE ModuleList
-                    | Procedure ENDOFLINE ModuleList
-                    | Declaration ENDOFLINE ModuleList
+ModuleList          ::= Function:func ENDOFLINE ModuleList:mlist
+                        {: RESULT = new ModuleListClass(func.line, func.column, mlist, func); :}
+                    | Procedure:proc ENDOFLINE ModuleList:mlist
+                        {: RESULT = new ModuleListClass(proc.line, proc.column, mlist, proc); :}
+                    | Declaration:dec ENDOFLINE ModuleList:mlist
+                        {: RESULT = new ModuleListClass(dec.line, dec.column, mlist, dec); :}
                     |
+                        {: RESULT = null; :}
 ;
 
-Function            ::= FUNCTION ID OPENPARENTHESIS ArgumentList CLOSEPARENTHESIS AS TYPE ENDOFLINE PreStatementList END FUNCTION
-                    | FUNCTION ID AS TYPE ENDOFLINE PreStatementList END FUNCTION
+Function            ::= FUNCTION:func ID:id OPENPARENTHESIS ArgumentList:alist CLOSEPARENTHESIS AS TYPE:type ENDOFLINE PreStatementList:pslist END FUNCTION
+                        {: RESULT = new FunctionHelper(func.left, func.right, id, alist, pslist, type); :}
+                    | FUNCTION:func ID:id AS TYPE:type ENDOFLINE PreStatementList:pslist END FUNCTION
+                        {: RESULT = new FunctionHelper(func.left, func.right, id, null, pslist, type); :}
 ;
 
-Procedure           ::= SUB ID OPENPARENTHESIS ArgumentList CLOSEPARENTHESIS ENDOFLINE PreStatementList END SUB
-                    | SUB ID ENDOFLINE PreStatementList END SUB
+Procedure           ::= SUB:sub ID:id OPENPARENTHESIS ArgumentList:alist CLOSEPARENTHESIS ENDOFLINE PreStatementList:pslist END SUB
+                        {: RESULT = new ProcedureHelper(sub.left, sub.right, id, alist, pslist); :}
+                    | SUB:sub ID:id ENDOFLINE PreStatementList:pslist END SUB
+                        {: RESULT = new ProcedureHelper(sub.left, sub.right, id, null, pslist); :}
 ;
 
-PreArgumentList     ::= ArgumentList 
+PreArgumentList     ::= ArgumentList:alist
+                        {: RESULT = alist; :}
                     |
+                        {: RESULT = null; :}
 ;
 
-ArgumentList        ::= Argument COMA ArgumentList 
-                    | Argument 
+ArgumentList        ::= Argument:arg COMA ArgumentList:alist 
+                        {: 
+                            alist.Add(arg);
+                            RESULT = alist; 
+                        :}
+                    | Argument:arg
+                        {: RESULT = new ListClass<ArgumentHelper> (arg.line, arg.column, arg); :}
 ;
 
-Argument            ::= ID AS TYPE
+Argument            ::= ID:id AS TYPE:type
+                        {: RESULT = new ArgumentHelper( id.left, id.right, id, type); :}
 ;
 
-PreStatementList    ::= StatementList
+PreStatementList    ::= StatementList:slist
+                        {: RESULT = slist :}
                     |
+                        {: RESULT = null; :}
 ;
 
-StatementList       ::= Statement ENDOFLINE StatementList 
-                    | Statement ENDOFLINE
+StatementList       ::= Statement:stat ENDOFLINE StatementList:slist 
+                        {: 
+                            slist.Add(stat);
+                            RESULT = slist; 
+                        :}
+                    | Statement:stat ENDOFLINE
+                        {: RESULT = new ListClass<StatementClass> (stat.line, stat.column, stat); :}
 ;
 
-FunctionCall        ::= ID OPENPARENTHESIS ExpressionList CLOSEPARENTHESIS
-                    | ID OPENPARENTHESIS CLOSEPARENTHESIS
+FunctionCall        ::= ID:id OPENPARENTHESIS ExpressionList:elist CLOSEPARENTHESIS
+                        {: RESULT = new FunctionCallStatement(id.left, id.right, id, elist); :}
+                    | ID:id OPENPARENTHESIS CLOSEPARENTHESIS
+                        {: RESULT = new FunctionCallStatement(id.left, id.right, id, null); :}
 ;
 
-Statement           ::= Declaration
-                    | Assignment
-                    | Conditional
-                    | Loop
-                    | IO
-                    | FunctionCall
+Statement           ::= Declaration:dec
+                        {: RESULT = dec; :}
+                    | Assignment:ass
+                        {: RESULT = ass; :}
+                    | Conditional:cond
+                        {: RESULT = cond; :}
+                    | Loop:loo
+                        {: RESULT = loo; :}
+                    | IO:io
+                        {: RESULT = io; :}
+                    | FunctionCall:func
+                        {: RESULT = func; :}
                     |
+                        {: RESULT = null; :}
 ;
 
-Declaration         ::= DIM ID AS TYPE
-                    | DIM ID AS TYPE EQUALTO Expression
+Declaration         ::= DIM:dim ID:id AS TYPE:type
+                        {: RESULT = new DeclarationStatement(dim.left, dim.right, id, type); :}
+                    | DIM:dim ID:id AS TYPE:type EQUALTO Expression:exp
+                        {: RESULT = new DeclarationStatement(dim.left, dim.right, id, type, exp); :}
 ;
 
-Assignment          ::= ID EQUALTO Expression
+Assignment          ::= ID:id EQUALTO Expression:exp
+                        {: RESULT = new AssignmentStatement(id.left, id.right, id, exp); :}
 ;
 
 IO                  ::= PRINT Expression
@@ -182,4 +223,5 @@ Expression          ::= Expression ADDITIONOPERATOR Expression
                     | TRUE
                     | FALSE
                     | Expression MOD Expression
+                    | OPENPARENTHESIS Expression CLOSEPARENTHESIS
 ;

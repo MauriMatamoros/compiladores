@@ -43,6 +43,7 @@ Expression -> Expression additionOperator Expression
             | string 
             | char
             | id "("[ExpressionList]")"
+            | "(" Expression ")"
 
 IO -> "PRINT" Expression | "ReadLine" id
 

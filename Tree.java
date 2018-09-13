@@ -1,6 +1,8 @@
+import java.util.ArrayList;
+
 public abstract class Tree {
     protected String description;
-    private int line, column;
+    public int line, column;
     protected Tree(int line, int column) {
         this.line = line;
         this.column = column;
@@ -14,6 +16,23 @@ public abstract class Tree {
     }
 }
 
+class ListClass<T> extends Tree {
+    ArrayList<T> elements;
+    public ListClass(int line, int column, ArrayList<T> elements) {
+        super(line, column);
+        this.elements = elements;
+        this.description = "List";
+    }
+    public ListClass(int line, int column, T element) {
+        super(line, column);
+        this.elements = new ArrayList<T>();
+        this.elements.add(element);
+    }
+    public void Add(T element) {
+        this.elements.add(0, element);
+    }
+}
+
 abstract class StatementClass extends Tree {
     protected StatementClass(int line, int column) {
         super(line, column);
@@ -23,18 +42,30 @@ abstract class StatementClass extends Tree {
 class DeclarationStatement extends StatementClass{
     String id;
     String type;
+    Expression expression = null;
     public DeclarationStatement(int line, int column, String id, String type) {
         super(line, column);
         this.id = id;
         this.type = type;
         this.description = "Declaration " + this.id + " " + this.type;
     }
+    public DeclarationStatement(int line, int column, String id, String type, Expression expression) {
+        super(line, column);
+        this.id = id;
+        this.type = type;
+        this.expression = expression;
+        this.description = "Declaration " + this.id + " " + this.type;
+    }
+    @Override
+    public Tree[] getChildren(){
+        return new Tree[] {expression};
+    }
 }
 class ForStatement extends StatementClass{
     AssignmentStatement assignment;
     int integer;
-    StatementClass[] statements;
-    public ForStatement(int line, int column, AssignmentStatement assignment, int integer, StatementClass[] statements) {
+    ListClass<StatementClass> statements;
+    public ForStatement(int line, int column, AssignmentStatement assignment, int integer, ListClass<StatementClass> statements) {
         super(line, column);
         this.assignment =  assignment;
         this.integer = integer;
@@ -48,8 +79,8 @@ class ForStatement extends StatementClass{
 }
 class WhileStatement extends StatementClass{
     Expression expression;
-    StatementClass[] statements;
-    public WhileStatement(int line, int column, Expression expression, StatementClass[] statements) {
+    ListClass<StatementClass> statements;
+    public WhileStatement(int line, int column, Expression expression, ListClass<StatementClass> statements) {
         super(line, column);
         this.expression = expression;
         this.statements = statements;
@@ -96,8 +127,8 @@ class WriteStatement extends StatementClass{
 }
 class FunctionCallStatement extends StatementClass{
     String id;
-    Expression[] expressions;
-    public FunctionCallStatement(int line, int column, String id, Expression[] expressions) {
+    ListClass<Expression> expressions;
+    public FunctionCallStatement(int line, int column, String id, ListClass<Expression> expressions) {
         super(line, column);
         this.id = id;
         this.expressions = expressions;
@@ -110,9 +141,9 @@ class FunctionCallStatement extends StatementClass{
 }
 class ConditionalStatement extends StatementClass{
     Expression expression;
-    StatementClass[] statementsIfTrue;
-    StatementClass[] statementsIfFalse;
-    public ConditionalStatement(int line, int column, Expression expression, StatementClass[] statementsIfTrue, StatementClass[] statementsIfFalse) {
+    ListClass<StatementClass> statementsIfTrue;
+    ListClass<StatementClass> statementsIfFalse;
+    public ConditionalStatement(int line, int column, Expression expression, ListClass<StatementClass> statementsIfTrue, ListClass<StatementClass> statementsIfFalse) {
         super(line, column);
         this.expression = expression;
         this.statementsIfTrue = statementsIfTrue;
@@ -128,8 +159,10 @@ class ConditionalStatement extends StatementClass{
 class ModuleListClass<T> extends Tree {
     T module;
     ModuleListClass tail;
-    public ModuleListClass(int line, int column) {
+    public ModuleListClass(int line, int column, ModuleListClass tail, T module) {
         super(line, column);
+        this.module = module;
+        this.tail = tail;
         this.description = "ModuleListClass";
     }
     @Override
@@ -140,9 +173,9 @@ class ModuleListClass<T> extends Tree {
 
 class ProcedureHelper extends Tree {
     String id;
-    ArgumentHelper[] arguments;
-    StatementClass[] statements;
-    public ProcedureHelper(int line, int column, String id, ArgumentHelper arguments, StatementClass[] statements) {
+    ListClass<ArgumentHelper> arguments;
+    ListClass<StatementClass> statements;
+    public ProcedureHelper(int line, int column, String id, ListClass<ArgumentHelper> arguments, ListClass<StatementClass> statements) {
         super(line, column);
         this.id = id;
         this.arguments = arguments;
@@ -157,10 +190,10 @@ class ProcedureHelper extends Tree {
 
 class FunctionHelper extends Tree {
     String id;
-    ArgumentHelper[] arguments;
-    StatementClass[] statements;
+    ListClass<ArgumentHelper> arguments;
+    ListClass<StatementClass> statements;
     String type;
-    public FunctionHelper(int line, int column, String id, ArgumentHelper arguments, StatementClass[] statements, String type) {
+    public FunctionHelper(int line, int column, String id, ListClass<ArgumentHelper> arguments, ListClass<StatementClass> statements, String type) {
         super(line, column);
         this.id = id;
         this.arguments = arguments;
@@ -243,8 +276,8 @@ class IdExpression extends Expression {
 
 class FunctionCallExpression extends Expression {
     String id;
-    ArgumentHelper[] arguments;
-    public FunctionCallExpression(int line, int column, String id, ArgumentHelper[] arguments) {
+    ListClass<ArgumentHelper> arguments;
+    public FunctionCallExpression(int line, int column, String id, ListClass<ArgumentHelper> arguments) {
         super(line, column);
         this.id = id;
         this.arguments = arguments;
