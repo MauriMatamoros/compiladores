@@ -4,10 +4,8 @@ import java_cup.runtime.*;
 %cup
 %class Lexer
 %unicode
-%standalone
 %line
 %column
-%char
 %cupdebug
 %ignorecase
 

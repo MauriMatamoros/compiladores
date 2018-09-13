@@ -27,11 +27,21 @@ class ListClass<T> extends Tree {
         super(line, column);
         this.elements = new ArrayList<T>();
         this.elements.add(element);
+        this.description = "List";
     }
     public void Add(T element) {
         this.elements.add(0, element);
-        this.line = element.line;
-        this.column = element.column;
+        this.line = ((Tree) element).line;
+        this.column = ((Tree) element).column;
+    }
+    public Tree[] getChildren(){
+        Object[] a = elements.toArray();
+        Tree[] c = new Tree[a.length];
+        for(int i = 0; i < a.length; i++)
+        {
+            c[i] = (Tree) a[i];
+        }
+        return c;
     }
 }
 
@@ -169,7 +179,7 @@ class ModuleListClass<T> extends Tree {
     }
     @Override
     public Tree[] getChildren(){
-        return new Tree[] {tail};
+        return new Tree[] {(Tree) module, tail};
     }
 }
 
@@ -186,7 +196,7 @@ class ProcedureHelper extends Tree {
     }
     @Override
     public Tree[] getChildren(){
-        return new Tree[] {arguments, statementList};
+        return new Tree[] {arguments, statements};
     }
 }
 
@@ -199,7 +209,7 @@ class FunctionHelper extends Tree {
         super(line, column);
         this.id = id;
         this.arguments = arguments;
-        this.statementList = statements;
+        this.statements = statements;
         this.type = type;
         this.description = "Function " + this.id + " " + this.type;
     }

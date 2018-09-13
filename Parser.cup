@@ -3,14 +3,18 @@ import java_cup.runtime.*;
 
 action code
 {:
-    public static String repeat(int count) {
-        return repeat(count, "   ");
+
+    public String repeat(int count, String with) {
+        return new String(new char[count]).replace("\0", with);
+    }
+    public String repeat(int count) {
+        return repeat(count, "|    ");
     }
     public void Print(Tree tree, int depth) {
         System.out.println(repeat(depth) + tree.toString());
         Tree[] children = tree.getChildren();
         if (children != null) {
-            for (Tree child : childre) { 
+            for (Tree child : children) { 
                 if (child != null) {
                     Print(child, depth + 1);
                 }
@@ -76,11 +80,11 @@ precedence left NOT;
 
 start with Program;
 
-Program ::= PreModuleList:list {: Print(list, 0) :}
+Program ::= PreModuleList:list {: Print(list, 0); :}
 ;
 
 PreModuleList       ::= SUB:sub MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList:slist END SUB ENDOFLINE ModuleList:mlist 
-                        {: RESULT = new ModuleListClass(sub.left, sub.right, mlist, new ProcedureHelper(sub.left, sub.right, "Main", null, slist)); :}
+                        {: RESULT = new ModuleListClass(subleft, subright, mlist, new ProcedureHelper(subleft, subright, "Main", null, slist)); :}
                     | Function:func ENDOFLINE PreModuleList:pmlist
                         {: RESULT = new ModuleListClass(func.line, func.column, pmlist, func); :}
                     | Procedure:proc ENDOFLINE PreModuleList:pmlist
@@ -100,15 +104,15 @@ ModuleList          ::= Function:func ENDOFLINE ModuleList:mlist
 ;
 
 Function            ::= FUNCTION:func ID:id OPENPARENTHESIS ArgumentList:alist CLOSEPARENTHESIS AS TYPE:type ENDOFLINE PreStatementList:pslist END FUNCTION
-                        {: RESULT = new FunctionHelper(func.left, func.right, id, alist, pslist, type); :}
+                        {: RESULT = new FunctionHelper(funcleft, funcright, id, alist, pslist, type); :}
                     | FUNCTION:func ID:id AS TYPE:type ENDOFLINE PreStatementList:pslist END FUNCTION
-                        {: RESULT = new FunctionHelper(func.left, func.right, id, null, pslist, type); :}
+                        {: RESULT = new FunctionHelper(funcleft, funcright, id, null, pslist, type); :}
 ;
 
 Procedure           ::= SUB:sub ID:id OPENPARENTHESIS ArgumentList:alist CLOSEPARENTHESIS ENDOFLINE PreStatementList:pslist END SUB
-                        {: RESULT = new ProcedureHelper(sub.left, sub.right, id, alist, pslist); :}
+                        {: RESULT = new ProcedureHelper(subleft, subright, id, alist, pslist); :}
                     | SUB:sub ID:id ENDOFLINE PreStatementList:pslist END SUB
-                        {: RESULT = new ProcedureHelper(sub.left, sub.right, id, null, pslist); :}
+                        {: RESULT = new ProcedureHelper(subleft, subright, id, null, pslist); :}
 ;
 
 PreArgumentList     ::= ArgumentList:alist
@@ -127,11 +131,11 @@ ArgumentList        ::= Argument:arg COMA ArgumentList:alist
 ;
 
 Argument            ::= ID:id AS TYPE:type
-                        {: RESULT = new ArgumentHelper( id.left, id.right, id, type); :}
+                        {: RESULT = new ArgumentHelper( idleft, idright, id, type); :}
 ;
 
 PreStatementList    ::= StatementList:slist
-                        {: RESULT = slist :}
+                        {: RESULT = slist; :}
                     |
                         {: RESULT = null; :}
 ;
@@ -146,9 +150,9 @@ StatementList       ::= Statement:stat ENDOFLINE StatementList:slist
 ;
 
 FunctionCall        ::= ID:id OPENPARENTHESIS ExpressionList:elist CLOSEPARENTHESIS
-                        {: RESULT = new FunctionCallStatement(id.left, id.right, id, elist); :}
+                        {: RESULT = new FunctionCallStatement(idleft, idright, id, elist); :}
                     | ID:id OPENPARENTHESIS CLOSEPARENTHESIS
-                        {: RESULT = new FunctionCallStatement(id.left, id.right, id, null); :}
+                        {: RESULT = new FunctionCallStatement(idleft, idright, id, null); :}
 ;
 
 Statement           ::= Declaration:dec
@@ -168,33 +172,33 @@ Statement           ::= Declaration:dec
 ;
 
 Declaration         ::= DIM:dim ID:id AS TYPE:type
-                        {: RESULT = new DeclarationStatement(dim.left, dim.right, id, type); :}
+                        {: RESULT = new DeclarationStatement(dimleft, dimright, id, type); :}
                     | DIM:dim ID:id AS TYPE:type EQUALTO Expression:exp
-                        {: RESULT = new DeclarationStatement(dim.left, dim.right, id, type, exp); :}
+                        {: RESULT = new DeclarationStatement(dimleft, dimright, id, type, exp); :}
 ;
 
 Assignment          ::= ID:id EQUALTO Expression:exp
-                        {: RESULT = new AssignmentStatement(id.left, id.right, id, exp); :}
+                        {: RESULT = new AssignmentStatement(idleft, idright, id, exp); :}
 ;
 
 IO                  ::= PRINT:print Expression:exp
-                        {: RESULT =  new WriteStatement(print.left, print.right, exp); :}
+                        {: RESULT =  new WriteStatement(printleft, printright, exp); :}
                     | READLINE:read ID:id
-                        {: RESULT = new ReadStatement(read.left, read.right, id); :}
+                        {: RESULT = new ReadStatement(readleft, readright, id); :}
 ;
 
 Conditional         ::= IF:condIf Expression:exp THEN ENDOFLINE PreStatementList:pslist ConditionalElse:condElse END IF
-                        {: RESULT = new ConditionalStatement(condIf.left, condIf.right, exp, pslist, condElse); :}
+                        {: RESULT = new ConditionalStatement(condIfleft, condIfright, exp, pslist, condElse); :}
                     | IF:condIf Expression:exp THEN ENDOFLINE PreStatementList:pslist END IF
-                        {: RESULT = new ConditionalStatement(condIf.left, condIf.right, exp, pslist, null); :}
+                        {: RESULT = new ConditionalStatement(condIfleft, condIfright, exp, pslist, null); :}
 ;
 
 ConditionalElse     ::= ELSE ENDOFLINE PreStatementList:pslist
                         {: RESULT = pslist; :}
                     | ELSEIF:cond Expression:exp THEN ENDOFLINE PreStatementList:pslist ConditionalElse:condElse
-                        {: RESULT = new ListClass(cond.left, cond.right, new ConditionalStatement(cond.left, cond.right, exp, pslist, condElse)); :}
+                        {: RESULT = new ListClass(condleft, condright, new ConditionalStatement(condleft, condright, exp, pslist, condElse)); :}
                     | ELSEIF:cond Expression:exp THEN ENDOFLINE PreStatementList:pslist
-                        {: RESULT = new ListClass(cond.left, cond.right, new ConditionalStatement(cond.left, cond.right, exp, pslist, null));  :}
+                        {: RESULT = new ListClass(condleft, condright, new ConditionalStatement(condleft, condright, exp, pslist, null));  :}
 ;
 
 Loop                ::= For:fs
@@ -204,11 +208,11 @@ Loop                ::= For:fs
 ;
 
 For                 ::= FOR:fs Assignment:ass TO INTEGER:i ENDOFLINE PreStatementList:pslist NEXT
-                        {: RESULT = new ForStatement(fs.left, fs.right, ass, i, pslist); :}
+                        {: RESULT = new ForStatement(fsleft, fsright, ass, Integer.parseInt(i), pslist); :}
 ;
 
 While               ::= DO:d ENDOFLINE PreStatementList:pslist LOOP WHILE Expression:exp
-                        {: RESULT = new WhileStatement(d.left, d.right, exp, pslist); :}
+                        {: RESULT = new WhileStatement(dleft, dright, exp, pslist); :}
 ;
 
 ExpressionList      ::= Expression:exp COMA ExpressionList:elist
@@ -233,23 +237,23 @@ Expression          ::= Expression:expL ADDITIONOPERATOR:opp Expression:expR
                     | Expression:expL MOD Expression:expR
                         {: RESULT = new BinaryExpression(expL.line, expL.column, expL, "MOD", expR); :}
                     | NOT:not Expression:exp
-                        {: RESULT = new UnaryExpression(not.left, not.right, "NOT", exp); :}
+                        {: RESULT = new UnaryExpression(notleft, notright, "NOT", exp); :}
                     | ID:id
-                        {: RESULT = new IdExpression(id.left, id.right, id); :}
+                        {: RESULT = new IdExpression(idleft, idright, id); :}
                     | INTEGER:i
-                        {: RESULT = new LiteralExpression<Integer> (i.left, i.right, Integer.parseInt(i)); :}
+                        {: RESULT = new LiteralExpression<Integer> (ileft, iright, Integer.parseInt(i)); :}
                     | STRING:s
-                        {: RESULT = new LiteralExpression<String> (s.left, s.right, s); :}
+                        {: RESULT = new LiteralExpression<String> (sleft, sright, s); :}
                     | CHAR:c
-                        {: RESULT = new LiteralExpression<Character> (c.left, c.right, c.charAt(0)); :}
-                    | TRUE 
-                        {: RESULT = new LiteralExpression<Integer> (i.left, i.right, -1); :}
-                    | FALSE
-                        {: RESULT = new LiteralExpression<Integer> (i.left, i.right, 0); :}
+                        {: RESULT = new LiteralExpression<Character> (cleft, cright, c.charAt(0)); :}
+                    | TRUE:t
+                        {: RESULT = new LiteralExpression<Integer> (tleft, tright, -1); :}
+                    | FALSE:f
+                        {: RESULT = new LiteralExpression<Integer> (fleft, fright, 0); :}
                     | ID:id OPENPARENTHESIS ExpressionList:elist CLOSEPARENTHESIS
-                        {: RESULT = new FunctionCallExpression(id.left, id.right, id, elist); :}
+                        {: RESULT = new FunctionCallExpression(idleft, idright, id, elist); :}
                     | ID:id OPENPARENTHESIS CLOSEPARENTHESIS
-                        {: RESULT = new FunctionCallExpression(id.left, id.right, id, null); :}
+                        {: RESULT = new FunctionCallExpression(idleft, idright, id, null); :}
                     | OPENPARENTHESIS Expression:exp CLOSEPARENTHESIS
                         {: RESULT = exp; :}
 ;
