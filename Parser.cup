@@ -32,10 +32,11 @@ parser code
         errors += "Error ";
         if (info instanceof Symbol) {
             Symbol s=((Symbol)info);
-            if (s.left>=0) {
-                errors+="at line "+(s.left+1);
-                if (s.right>=0) {
-                    errors += ", column "+(s.right+1);
+            errors += "Symbol " + sym.terminalNames[s.sym];
+            if (s.left >= 0) {
+                errors+=" at line "+(s.left+1);
+                if (s.right >= 0) {
+                    errors += ", column "+(s.right + 1);
                 }
             }
         }
@@ -109,8 +110,8 @@ Program         ::= PreModuleList:list
                     :}
 ;
 
-PreModuleList       ::= SUB:sub MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList:slist END SUB ENDOFLINE ModuleList:mlist 
-                        {: RESULT = new ModuleListClass(subleft, subright, mlist, new ProcedureHelper(subleft, subright, "Main", null, slist)); :}
+PreModuleList       ::= SUB:sub MAIN OPENPARENTHESIS PreArgumentList:alist CLOSEPARENTHESIS ENDOFLINE PreStatementList:slist END SUB ENDOFLINE ModuleList:mlist 
+                        {: RESULT = new ModuleListClass(subleft, subright, mlist, new ProcedureHelper(subleft, subright, "Main", alist, slist)); :}
                     | Function:func ENDOFLINE PreModuleList:pmlist
                         {: RESULT = new ModuleListClass(func.line, func.column, pmlist, func); :}
                     | Procedure:proc ENDOFLINE PreModuleList:pmlist
@@ -132,19 +133,16 @@ ModuleList          ::= Function:func ENDOFLINE ModuleList:mlist
                         {: RESULT = null; :}
 ;
 
-Function            ::= FUNCTION:func ID:id OPENPARENTHESIS ArgumentList:alist CLOSEPARENTHESIS AS TYPE:type ENDOFLINE PreStatementList:pslist END FUNCTION
+Function            ::= FUNCTION:func ID:id OPENPARENTHESIS PreArgumentList:alist CLOSEPARENTHESIS AS TYPE:type ENDOFLINE PreStatementList:pslist END FUNCTION
                         {: RESULT = new FunctionHelper(funcleft, funcright, id, alist, pslist, type); :}
-                    | FUNCTION:func ID:id AS TYPE:type ENDOFLINE PreStatementList:pslist END FUNCTION
-                        {: RESULT = new FunctionHelper(funcleft, funcright, id, null, pslist, type); :}
 ;
 
-Procedure           ::= SUB:sub ID:id OPENPARENTHESIS ArgumentList:alist CLOSEPARENTHESIS ENDOFLINE PreStatementList:pslist END SUB
+Procedure           ::= SUB:sub ID:id OPENPARENTHESIS PreArgumentList:alist CLOSEPARENTHESIS ENDOFLINE PreStatementList:pslist END SUB
                         {: RESULT = new ProcedureHelper(subleft, subright, id, alist, pslist); :}
-                    | SUB:sub ID:id OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList:pslist END SUB
-                        {: RESULT = new ProcedureHelper(subleft, subright, id, null, pslist); :}
 ;
 
-PreArgumentList     ::= ArgumentList:alist
+PreArgumentList     ::= error ArgumentList
+                    | ArgumentList:alist
                         {: RESULT = alist; :}
                     |
                         {: RESULT = null; :}
@@ -169,14 +167,27 @@ PreStatementList    ::= StatementList:slist
                         {: RESULT = null; :}
 ;
 
-StatementList       ::= error StatementList
+StatementList       ::= error StatementList:slist
+                        {:
+                            if (slist != null) {
+                                RESULT = slist;
+                            } else {
+                                RESULT = new ListClass<StatementClass> ();
+                            }
+                        :}
                     | Statement:stat ENDOFLINE StatementList:slist 
                         {: 
                             slist.Add(stat);
                             RESULT = slist; 
                         :}
                     | Statement:stat ENDOFLINE
-                        {: RESULT = new ListClass<StatementClass> (stat.line, stat.column, stat); :}
+                        {:
+                            if (stat != null) {
+                                RESULT = new ListClass<StatementClass> (stat.line, stat.column, stat); 
+                            } else {
+                                RESULT = new ListClass<StatementClass> ();
+                            }
+                        :}
 ;
 
 FunctionCall        ::= ID:id OPENPARENTHESIS ExpressionList:elist CLOSEPARENTHESIS
@@ -245,14 +256,28 @@ While               ::= DO:d ENDOFLINE PreStatementList:pslist LOOP WHILE Expres
                         {: RESULT = new WhileStatement(dleft, dright, exp, pslist); :}
 ;
 
-ExpressionList      ::= error ExpressionList 
+ExpressionList      ::= error ExpressionList:elist
+                        {:
+                            if (elist != null) {
+                                RESULT = elist;
+                            } else {
+                                RESULT = new ListClass<Expression> ();
+                            }
+                        :}
                     | Expression:exp COMA ExpressionList:elist
                         {:
                             elist.Add(exp);
                             RESULT = elist; 
                         :}
                     | Expression:exp
-                        {: RESULT = new ListClass<Expression> (exp.line, exp.column, exp); :}
+                        {:
+                            if (exp != null) {
+                                RESULT = new ListClass<Expression> (exp.line, exp.column, exp); 
+                            } else {
+                                RESULT = new ListClass<Expression> ();
+                            } 
+                            
+                        :}
 ;
 
 Expression          ::= Expression:expL ADDITIONOPERATOR:opp Expression:expR

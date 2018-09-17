@@ -18,9 +18,9 @@ public abstract class Tree {
 
 class ListClass<T> extends Tree {
     ArrayList<T> elements;
-    public ListClass(int line, int column, ArrayList<T> elements) {
-        super(line, column);
-        this.elements = elements;
+    public ListClass() {
+        super(0, 0);
+        this.elements = new ArrayList<T>();
         this.description = "List";
     }
     public ListClass(int line, int column, T element) {
@@ -30,9 +30,11 @@ class ListClass<T> extends Tree {
         this.description = element instanceof StatementClass ? "StatementList" : "ExpressionList";
     }
     public void Add(T element) {
-        this.elements.add(0, element);
-        this.line = ((Tree) element).line;
-        this.column = ((Tree) element).column;
+        if (element != null) {
+            this.elements.add(0, element);
+            this.line = ((Tree) element).line;
+            this.column = ((Tree) element).column;
+        }
     }
     public Tree[] getChildren(){
         Object[] a = elements.toArray();

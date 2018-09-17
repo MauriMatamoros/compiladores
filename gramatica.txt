@@ -7,7 +7,7 @@ lowercase           = Terminal con Valor
 
 Program -> PreModuleList
 
-PreModuleList -> "Sub" "Main" "(" ")" \n StatementList \n "End" "Sub" \n ModuleList | Function \n PreModuleList | Procedure \n PreModuleList | Declaration \n PreModuleList
+PreModuleList -> "Sub" "Main" "(" [PreArgumentList] ")" \n StatementList \n "End" "Sub" \n ModuleList | Function \n PreModuleList | Procedure \n PreModuleList | Declaration \n PreModuleList
 
 ModuleList -> Function \n ModuleList | Procedure \n ModuleList | Declaration \n ModuleList | " "
 
