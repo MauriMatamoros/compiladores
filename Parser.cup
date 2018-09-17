@@ -6,7 +6,6 @@ import java.util.List;
 
 action code
 {:
-
     public String repeat(int count, String with) {
         return new String(new char[count]).replace("\0", with);
     }
@@ -24,7 +23,6 @@ action code
             }
         }
     }
-
 :}
 
 parser code
@@ -32,32 +30,30 @@ parser code
     public String errors = "";
     public void report_error(String message,Object info){
         errors += "Error ";
-        if(info instanceof Symbol){
+        if (info instanceof Symbol) {
             Symbol s=((Symbol)info);
-            if(s.left>=0){
-                errors+="en linea "+(s.left+1);
-                if(s.right>=0)
-                    errors += ", columna "+(s.right+1);
+            if (s.left>=0) {
+                errors+="at line "+(s.left+1);
+                if (s.right>=0) {
+                    errors += ", column"+(s.right+1);
+                }
             }
         }
-        errors += ": " + message+ "\n";
+        errors += ": " + message + "\n";
     }
-
-        public void report_fatal_error(String message, Object info){
-                report_error(message, info);
+    public void report_fatal_error(String message, Object info){
+            report_error(message, info);
+    }
+    public void unrecovered_syntax_error(Symbol currentToken){
+            errors += "At line "+(currentToken.left)+", column "+currentToken.right+"\n";
+    }
+    protected void report_expected_token_ids() {
+        List<Integer> ids = expected_token_ids();
+        LinkedList<String> list = new LinkedList<String>();
+        for (Integer expected : ids) {
+            list.add(symbl_name_from_id(expected));
         }
-
-        public void unrecovered_syntax_error(Symbol cur_token){
-                errors += "At line "+(cur_token.left)+", column "+cur_token.right+"\n";
-        }
-
-        protected void report_expected_token_ids() {
-	        List<Integer> ids = expected_token_ids();
-	        LinkedList<String> list = new LinkedList<String>();
-	        for (Integer expected : ids)
-		        list.add(symbl_name_from_id(expected));
 	}
-
 :}
 
 terminal COMA, PERIOD;
@@ -100,7 +96,6 @@ precedence left RELATIONALOPERATOR;
 precedence left ADDITIONOPERATOR;
 precedence left MULTIPLICATIONOPERATOR, MOD;
 precedence left NOT;
-
 
 start with Program;
 
