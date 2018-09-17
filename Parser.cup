@@ -35,7 +35,7 @@ parser code
             if (s.left>=0) {
                 errors+="at line "+(s.left+1);
                 if (s.right>=0) {
-                    errors += ", column"+(s.right+1);
+                    errors += ", column "+(s.right+1);
                 }
             }
         }
@@ -99,14 +99,14 @@ precedence left NOT;
 
 start with Program;
 
-Program ::= PreModuleList:list 
-            {: 
-                if (errors.equals("")) {
-                    Print(list, 0);
-                } else {
-                    System.out.println(errors);
-                }
-            :}
+Program         ::= PreModuleList:list
+                    {: 
+                        if (errors.equals("")) {
+                            Print(list, 0);
+                        } else {
+                            System.out.println(errors);
+                        }
+                    :}
 ;
 
 PreModuleList       ::= SUB:sub MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList:slist END SUB ENDOFLINE ModuleList:mlist 
@@ -117,6 +117,9 @@ PreModuleList       ::= SUB:sub MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE 
                         {: RESULT = new ModuleListClass(proc.line, proc.column, pmlist, proc); :}
                     | Declaration:dec ENDOFLINE PreModuleList:pmlist
                         {: RESULT = new ModuleListClass(dec.line, dec.column, pmlist, dec); :}
+                    | error ModuleList
+                        {: errors += "No Main procedure"; :}
+                    | error PreModuleList
 ;
 
 ModuleList          ::= Function:func ENDOFLINE ModuleList:mlist
@@ -137,7 +140,7 @@ Function            ::= FUNCTION:func ID:id OPENPARENTHESIS ArgumentList:alist C
 
 Procedure           ::= SUB:sub ID:id OPENPARENTHESIS ArgumentList:alist CLOSEPARENTHESIS ENDOFLINE PreStatementList:pslist END SUB
                         {: RESULT = new ProcedureHelper(subleft, subright, id, alist, pslist); :}
-                    | SUB:sub ID:id ENDOFLINE PreStatementList:pslist END SUB
+                    | SUB:sub ID:id OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList:pslist END SUB
                         {: RESULT = new ProcedureHelper(subleft, subright, id, null, pslist); :}
 ;
 

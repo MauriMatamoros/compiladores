@@ -18,7 +18,7 @@ Sub Main()
    ' Check to see if we have any waiting input.
    If Piped Then
       ' Slurp it all in a single stream.
-      sData.k = ReadStream(hello, hi)
+      sData = ReadStream(hello, hi)
       ' Just to prove we did it, place text on clipboard.
       ' Write some debugging information.
    Else

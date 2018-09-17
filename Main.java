@@ -6,11 +6,11 @@ public class Main{
             parser p = new parser(new Lexer(new FileReader(argv[0])));
             Object result = p.parse().value;
         }catch(ArrayIndexOutOfBoundsException e){
-            System.out.println("Main: No se especifico un archivo.");
+            System.out.println("Main: file not specified.");
         }catch(FileNotFoundException e){
-            System.out.println("Main: No se encontro el archivo.");
+            System.out.println("Main: no file found.");
         }catch(Exception e){
-            System.out.println("Main: Error fatal desconocido de compilacion.");
+            System.out.println("Main: Unknown fatal error.");
             e.printStackTrace();
         }
     }
