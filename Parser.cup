@@ -1,5 +1,8 @@
 import java.io.*;
 import java_cup.runtime.*;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
 action code
 {:
@@ -26,13 +29,34 @@ action code
 
 parser code
 {:
-    public void syntax_error(Symbol s){
-        report_error("Error sintactico en linea: " + (s.left + 1) + " y columna: " + (s.right + 1) + "\n El simbolo fue: ", sym.terminalNames[s.sym]);
+    public String errors = "";
+    public void report_error(String message,Object info){
+        errors += "Error ";
+        if(info instanceof Symbol){
+            Symbol s=((Symbol)info);
+            if(s.left>=0){
+                errors+="en linea "+(s.left+1);
+                if(s.right>=0)
+                    errors += ", columna "+(s.right+1);
+            }
+        }
+        errors += ": " + message+ "\n";
     }
 
-    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
-        report_fatal_error("Error sintactico fatal: " + s + "\n", null);
-    }
+        public void report_fatal_error(String message, Object info){
+                report_error(message, info);
+        }
+
+        public void unrecovered_syntax_error(Symbol cur_token){
+                errors += "At line "+(cur_token.left)+", column "+cur_token.right+"\n";
+        }
+
+        protected void report_expected_token_ids() {
+	        List<Integer> ids = expected_token_ids();
+	        LinkedList<String> list = new LinkedList<String>();
+	        for (Integer expected : ids)
+		        list.add(symbl_name_from_id(expected));
+	}
 
 :}
 
@@ -80,7 +104,14 @@ precedence left NOT;
 
 start with Program;
 
-Program ::= PreModuleList:list {: Print(list, 0); :}
+Program ::= PreModuleList:list 
+            {: 
+                if (errors.equals("")) {
+                    Print(list, 0);
+                } else {
+                    System.out.println(errors);
+                }
+            :}
 ;
 
 PreModuleList       ::= SUB:sub MAIN OPENPARENTHESIS CLOSEPARENTHESIS ENDOFLINE PreStatementList:slist END SUB ENDOFLINE ModuleList:mlist 
@@ -140,7 +171,8 @@ PreStatementList    ::= StatementList:slist
                         {: RESULT = null; :}
 ;
 
-StatementList       ::= Statement:stat ENDOFLINE StatementList:slist 
+StatementList       ::= error StatementList
+                    | Statement:stat ENDOFLINE StatementList:slist 
                         {: 
                             slist.Add(stat);
                             RESULT = slist; 
@@ -215,7 +247,8 @@ While               ::= DO:d ENDOFLINE PreStatementList:pslist LOOP WHILE Expres
                         {: RESULT = new WhileStatement(dleft, dright, exp, pslist); :}
 ;
 
-ExpressionList      ::= Expression:exp COMA ExpressionList:elist
+ExpressionList      ::= error ExpressionList 
+                    | Expression:exp COMA ExpressionList:elist
                         {:
                             elist.Add(exp);
                             RESULT = elist; 

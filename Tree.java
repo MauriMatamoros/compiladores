@@ -27,7 +27,7 @@ class ListClass<T> extends Tree {
         super(line, column);
         this.elements = new ArrayList<T>();
         this.elements.add(element);
-        this.description = "List";
+        this.description = element instanceof StatementClass ? "StatementList" : "ExpressionList";
     }
     public void Add(T element) {
         this.elements.add(0, element);
