@@ -18,7 +18,7 @@ Sub dMain()
    ' Required in all MConsole.bas supported apps!
 
    ' Check to see if we have any waiting input.
-   If Piped Then
+   If (Piped > (1 + 98) - (9)) AND (5 OR True) Then
       ' Slurp it all in a single stream.
       sData. = ReadStream(hello., hi)
       ' Just to prove we did it, place text on clipboard.
@@ -34,5 +34,7 @@ Sub dMain()
 End Sub
 
 Sub Hello ()
-    Dim. sMessage As String
+    Dim     sMessage, a As String, b As Integer
+    s = t()
+    Hello = 1
 End Sub

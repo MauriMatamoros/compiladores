@@ -42,7 +42,7 @@ greaterOrEqualThan = ">="
 notEqualTo = "<>"
 equalTo = "="
 
-relationalOperator = {lessThan} | {greatherThan} | {lessOrEqualThan} | {greaterOrEqualThan} | {notEqualTo} | {equalTo}
+relationalOperator = {notEqualTo} | {lessThan} | {greatherThan} | {lessOrEqualThan} | {greaterOrEqualThan} | {equalTo}
 
 //Logical Operators
 and = "AND"

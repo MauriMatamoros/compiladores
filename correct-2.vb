@@ -18,11 +18,13 @@ Sub Main()
    ' Required in all MConsole.bas supported apps!
 
    ' Check to see if we have any waiting input.
-   If Piped Then
+   If (Piped > (1 + 98) - (9)) AND (5 OR True) Then
       ' Slurp it all in a single stream.
       sData = ReadStream(hello, hi)
       ' Just to prove we did it, place text on clipboard.
       ' Write some debugging information.
+    ElseIf Piped Then
+        Dim sData As String
    Else
       sMessage = "No redirection detected; nothing to read?" & "Hello"
       ' Send error condition to Standard Error!
@@ -33,6 +35,18 @@ Sub Main()
    End If
 End Sub
 
+Function forfunc () As Integer
+Dim x As Integer
+    For x = 1 To 50
+    Print x
+    Next
+End Function
+
 Sub Hello ()
+    Dim number As Char
+number = 0
+Do 
+number = number + 1
+Loop While number < 201
     Dim sMessage As String
 End Sub

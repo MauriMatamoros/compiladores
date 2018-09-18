@@ -41,6 +41,7 @@ Expression -> Expression additionOperator Expression
             | id 
             | integer 
             | string 
+            | string concatenate string
             | char
             | id "("[ExpressionList]")"
             | "(" Expression ")"
