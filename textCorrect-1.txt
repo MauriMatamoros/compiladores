@@ -24,8 +24,7 @@ Sub Main()
       ' Just to prove we did it, place text on clipboard.
       ' Write some debugging information.
    Else
-      sMessage = "No redirection detected; nothing to read?" &_
-      "Hello"
+      sMessage = "No redirection detected; nothing to read?" & "Hello"
       ' Send error condition to Standard Error!
       ' Set an exit code appropriate to this error.
       ' Application MUST BE COMPILED TO NATIVE CODE to

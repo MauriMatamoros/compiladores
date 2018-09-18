@@ -57,7 +57,7 @@ parser code
 	}
 :}
 
-terminal COMA, PERIOD;
+terminal COMA, PERIOD, CONCATENATE;
 terminal NOT, AND, OR;
 terminal IF, THEN, ELSE, ELSEIF;
 terminal DO, LOOP, WHILE;
@@ -300,6 +300,8 @@ Expression          ::= Expression:expL ADDITIONOPERATOR:opp Expression:expR
                         {: RESULT = new LiteralExpression<Integer> (ileft, iright, Integer.parseInt(i)); :}
                     | STRING:s
                         {: RESULT = new LiteralExpression<String> (sleft, sright, s); :}
+                    | STRING:sl CONCATENATE STRING:sr
+                        {: RESULT = new BinaryExpression(slleft, srright, new LiteralExpression<String> (slleft, slright, sl), "CONCATENATE", new LiteralExpression<String> (srleft, srright, sr)); :}
                     | CHAR:c
                         {: RESULT = new LiteralExpression<Character> (cleft, cright, c.charAt(0)); :}
                     | TRUE:t

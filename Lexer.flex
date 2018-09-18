@@ -95,11 +95,13 @@ char = {doubleQuote}({letter}|{digit}){doubleQuote}
 string = {doubleQuote}({letter}|{digit})*{doubleQuote}
 comment = {quote}[^\r\n]*{endOfLine}
 Main = "Main"
+concatenate = "&_"{endOfLine}|"&"
 
 %state STRING
 %%
 
 <YYINITIAL> {
+  {concatenate}             { return symbol(sym.CONCATENATE); }
   {equalTo}                 { return symbol(sym.EQUALTO); }
   {Main}                    { return symbol(sym.MAIN); }
   {BooleanTrue}             { return symbol(sym.TRUE); }
