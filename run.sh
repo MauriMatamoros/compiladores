@@ -1,1 +1,1 @@
-java -cp '/Users/mmatamoros/Documents/compiladores-1/Cup/java-cup-11b-runtime.jar:.' Main text.txt
+java -cp '/Users/mmatamoros/Documents/compiladores-1/Cup/java-cup-11b-runtime.jar:.' Main textCorrect-1.txt
