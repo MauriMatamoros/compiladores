@@ -6,6 +6,7 @@ import java.util.List;
 
 action code
 {:
+    public VariableTable variableTable = new VariableTable();
     public String repeat(int count, String with) {
         return new String(new char[count]).replace("\0", with);
     }
@@ -22,6 +23,18 @@ action code
                 }
             }
         }
+    }
+    public boolean SemanticAnalysis(Tree tree) {
+        boolean success = true;
+        Tree[] children = tree.getChildren();
+        if (children != null) {
+            for (Tree child : children) { 
+                if (child != null) {
+                    success = success && SemanticAnalysis(child);
+                }
+            }
+        }
+        success = success && tree.semanticTest(variableTable);
     }
 :}
 
@@ -214,8 +227,6 @@ Statement           ::= Declaration:dec
 
 Declaration         ::= DIM:dim ID:id AS TYPE:type
                         {: RESULT = new DeclarationStatement(dimleft, dimright, id, type); :}
-                    | DIM:dim ID:id AS TYPE:type EQUALTO Expression:exp
-                        {: RESULT = new DeclarationStatement(dimleft, dimright, id, type, exp); :}
 ;
 
 Assignment          ::= ID:id EQUALTO Expression:exp
