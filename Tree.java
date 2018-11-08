@@ -342,12 +342,22 @@ class FunctionHelper extends Tree {
 class ArgumentHelper extends Tree {
     String id;
     String type;
+    boolean byValue;
+
+    public ArgumentHelper(int line, int column, String id, String type, boolean byValue) {
+        super(line, column);
+        this.id = id;
+        this.type = type;
+        this.description = "Argument " + this.id + " " + this.type;
+        this.byValue = byValue;
+    }
 
     public ArgumentHelper(int line, int column, String id, String type) {
         super(line, column);
         this.id = id;
         this.type = type;
         this.description = "Argument " + this.id + " " + this.type;
+        this.byValue = true;
     }
 
     public boolean semanticTest(VariableTable variableTable) {

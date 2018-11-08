@@ -84,6 +84,7 @@ terminal ENDOFLINE;
 terminal TRUE, FALSE;
 terminal MAIN;
 terminal END;
+terminal BYREF, BYVAL;
 terminal String STRING, ID, TYPE, INTEGER, CHAR;
 terminal String RELATIONALOPERATOR, MULTIPLICATIONOPERATOR, ADDITIONOPERATOR;
 
@@ -172,6 +173,10 @@ ArgumentList        ::= Argument:arg COMA ArgumentList:alist
 
 Argument            ::= ID:id AS TYPE:type
                         {: RESULT = new ArgumentHelper( idleft, idright, id, type); :}
+                    | BYREF ID:id AS TYPE:type
+                        {: RESULT = new ArgumentHelper( idleft, idright, id, type, false); :}
+                    | BYVAL ID:id AS TYPE:type
+                        {: RESULT = new ArgumentHelper( idleft, idright, id, type, true); :}
 ;
 
 PreStatementList    ::= StatementList:slist

@@ -88,6 +88,10 @@ for = "For"
 to = "To"
 next = "Next"
 
+//
+byRef = "ByRef"
+byVal = "ByVal"
+
 endOfLine = (\r|\n|\r\n)+
 whiteSpace =  (\t|\f|" ")+
 
@@ -101,6 +105,8 @@ concatenate = "&_"{endOfLine}|"&"
 %%
 
 <YYINITIAL> {
+  {byVal}                   { return symbol(sym.byVal); }
+  {byRef}                   { return symbol(sym.byRef); }
   {concatenate}             { return symbol(sym.CONCATENATE); }
   {equalTo}                 { return symbol(sym.EQUALTO); }
   {Main}                    { return symbol(sym.MAIN); }
