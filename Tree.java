@@ -50,6 +50,10 @@ class ListClass<T> extends Tree {
         }
     }
 
+    public ArrayList<T> getList() {
+        return this.elements;
+    }
+
     public Tree[] getChildren() {
         Object[] a = elements.toArray();
         Tree[] c = new Tree[a.length];
@@ -225,7 +229,15 @@ class FunctionCallStatement extends StatementClass {
     }
 
     public boolean semanticTest(VariableTable variableTable) {
-        // TODO function exists and Arguments list is correct
+        ArrayList<String> types = new ArrayList<String>();
+        ArrayList<Expression> temporaryExpressions = this.expressions.getList();
+        for (int i = 0; i < temporaryExpressions.size(); i++) {
+            types.add(temporaryExpressions.get(i).getType(variableTable));
+        }
+        if (!variableTable.functionExists(this.id, types)) {
+            semanticError("The function with id: " + this.id + " and these arguments: " + types.toString()
+                    + " does not exist.");
+        }
         return false;
     }
 
@@ -360,9 +372,14 @@ class ArgumentHelper extends Tree {
         this.byValue = true;
     }
 
+    public boolean equals(ArgumentHelper argumentHelper) {
+        return this.type.equals(argumentHelper.type);
+    }
+
     public boolean semanticTest(VariableTable variableTable) {
         return true;
     }
+
 }
 
 abstract class Expression extends Tree {
@@ -508,28 +525,63 @@ class FunctionCallExpression extends Expression {
 }
 
 class VariableTable {
-    ArrayList<IdType> table;
+    ArrayList<IdType> idTable;
+    ArrayList<FunctionType> functionTable;
     ArrayList<VariableTable> subTables;
 
     public VariableTable() {
-        this.table = new ArrayList();
+        this.idTable = new ArrayList();
+        this.functionTable = new ArrayList();
         this.subTables = new ArrayList();
     }
 
+    // TODO throw error if already exists
     public void addToTable(IdType variable) {
-        this.table.add(variable);
+        this.idTable.add(variable);
+    }
+
+    public void addToTable(FunctionType function) {
+        this.functionTable.add(function);
     }
 
     public void addToTable(String id, String type) {
-        this.table.add(new IdType(id, type.toLowerCase()));
+        this.idTable.add(new IdType(id, type.toLowerCase()));
+    }
+
+    public void addToTable(String id, String type, ArrayList<ArgumentHelper> arguments) {
+        this.functionTable.add(new FunctionType(id, type.toLowerCase(), arguments));
     }
 
     public boolean variableExists(String id) {
         boolean exists = false;
-        for (int i = 0; i < this.table.size(); i++) {
-            if (this.table.get(i).getId() == id) {
+        for (int i = 0; i < this.idTable.size(); i++) {
+            if (this.idTable.get(i).getId() == id) {
                 exists = true;
                 break;
+            }
+        }
+        return exists;
+    }
+
+    public boolean functionExists(String id, ArrayList<String> argumentTypes) {
+        boolean exists = false;
+        for (int i = 0; i < this.functionTable.size(); i++) {
+            FunctionType curentFunction = this.functionTable.get(i);
+            if (currentFunction.getId().equals(id)) {
+                ArrayList<String> currentArguments = currentFunction.getTypes();
+                if (currentArguments.size() == argumentTypes.size()) {
+                    boolean argumentsAreEqual = true;
+                    for (int j = 0; j < currentArguments.size(); j++) {
+                        if (!currentArguments.get(j).equals(argumentTypes.get(j))) {
+                            argumentsAreEqual = false;
+                            break;
+                        }
+                    }
+                    if (argumentsAreEqual) {
+                        exists = true;
+                        break;
+                    }
+                }
             }
         }
         return exists;
@@ -561,5 +613,37 @@ class IdType {
 
     public String getType() {
         return this.type;
+    }
+}
+
+class FunctionType {
+    String id, type;
+    ArrayList<ArgumentHelper> arguments;
+
+    public IdType(String id, String type, ArrayList<ArgumentHelper> arguments) {
+        this.id = id;
+        this.type = type.toLowerCase();
+        this.arguments = arguments;
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public String getType() {
+        return this.type;
+    }
+
+    public ArrayList<ArgumentHelper> getArguments() {
+        return this.arguments;
+    }
+
+    public ArrayList<String> getTypes() {
+        // TODO check by reference or by value
+        ArrayList<String> types = new ArrayList<String>();
+        for (int i = 0; i < this.arguments.size(); i++) {
+            types.add(this.arguments.get(i).type);
+        }
+        return types;
     }
 }
