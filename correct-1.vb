@@ -1,10 +1,8 @@
 ' esto es un comment
 
 Sub Main()
-    Intcount = Intcount + 1
     Dim sData As String 
     Dim sMessage As String
-
 ' Required in all MConsole.bas supported apps!
 
 ' Check to see if we have any waiting input.

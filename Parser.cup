@@ -27,6 +27,7 @@ action code
     public boolean SemanticAnalysis(Tree tree) {
         boolean success = true;
         Tree[] children = tree.getChildren();
+        success = success && tree.semanticTest(variableTable);
         if (children != null) {
             for (Tree child : children) { 
                 if (child != null) {
@@ -34,7 +35,7 @@ action code
                 }
             }
         }
-        success = success && tree.semanticTest(variableTable);
+        return success;
     }
 :}
 
@@ -118,8 +119,12 @@ Program         ::= PreModuleList:list
                     {: 
                         if (errors.equals("")) {
                             Print(list, 0);
+                            if (!SemanticAnalysis(list)) {
+                                System.out.println("Semantic error. Stopping Compilation.");
+                            }
                         } else {
                             System.out.println(errors);
+                            System.out.println("Syntax error. Stopping Compilation.");
                         }
                     :}
 ;

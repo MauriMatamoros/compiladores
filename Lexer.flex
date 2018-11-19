@@ -105,8 +105,8 @@ concatenate = "&_"{endOfLine}|"&"
 %%
 
 <YYINITIAL> {
-  {byVal}                   { return symbol(sym.byVal); }
-  {byRef}                   { return symbol(sym.byRef); }
+  {byVal}                   { return symbol(sym.BYVAL); }
+  {byRef}                   { return symbol(sym.BYREF); }
   {concatenate}             { return symbol(sym.CONCATENATE); }
   {equalTo}                 { return symbol(sym.EQUALTO); }
   {Main}                    { return symbol(sym.MAIN); }

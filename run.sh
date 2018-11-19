@@ -1,1 +1,1 @@
-java -cp '/Users/mmatamoros/Documents/compiladores-1/Cup/java-cup-11b-runtime.jar:.' Main correct-1.vb
+java -cp '/Users/mmatamoros/Documents/compiladores/Cup/java-cup-11b-runtime.jar:.' Main correct-1.vb
