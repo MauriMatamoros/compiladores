@@ -13,7 +13,7 @@ public abstract class Tree {
 
     public void semanticError(String message) {
         System.out.println(
-                "Semantic Error \"" + message + "\" in line=: " + (line + 1) + " and column: " + (column + 1) + " ");
+                "Semantic Error \"" + message + "\" in line: " + (line + 1) + " and column: " + (column + 1) + " ");
     }
 
     @Override
@@ -373,7 +373,7 @@ class FunctionHelper extends Tree {
             ListClass<StatementClass> statements, String type) {
         super(line, column);
         this.id = id;
-        this.arguments = arguments;
+        this.arguments = arguments == null ? new ListClass<ArgumentHelper>() : arguments;
         this.statements = statements;
         this.type = type;
         this.description = "Function " + this.id + " " + this.type;
@@ -464,8 +464,7 @@ class BinaryExpression extends Expression {
     }
 
     public String getType(VariableTable variableTable) {
-        String type = right.getType(variableTable);
-        return type == left.getType(variableTable) ? type : "error";
+        return resultingType(this.left.getType(variableTable), this.right.getType(variableTable), this.operator);
     }
 
     public boolean semanticTest(VariableTable variableTable) {
@@ -479,9 +478,41 @@ class BinaryExpression extends Expression {
         return true;
     }
 
-    public String resultingType(String a, String b, String operator) {
-        // TODO finish resulting types
-        return "";
+    public String resultingType(String leftType, String rightType, String operator) {
+        ArrayList<String> relationalOperators = new ArrayList<String>();
+        relationalOperators.add(">");
+        relationalOperators.add("<");
+        relationalOperators.add(">=");
+        relationalOperators.add("<=");
+        ArrayList<String> comparativeOperators = new ArrayList<String>();
+        comparativeOperators.add("<>");
+        comparativeOperators.add("=");
+        ArrayList<String> logicalOperators = new ArrayList<String>();
+        logicalOperators.add("AND");
+        logicalOperators.add("OR");
+        logicalOperators.add("NOT");
+        ArrayList<String> arithmeticOperators = new ArrayList<String>();
+        arithmeticOperators.add("*");
+        arithmeticOperators.add("/");
+        arithmeticOperators.add("-");
+        arithmeticOperators.add("+");
+        arithmeticOperators.add("MOD");
+        ArrayList<String> numericTypes = new ArrayList<String>();
+        numericTypes.add("integer");
+        numericTypes.add("double");
+        System.out.println(operator);
+        if (relationalOperators.contains(operator)) {
+            return numericTypes.contains(leftType) && leftType.equals(rightType) ? "boolean" : "error";
+        } else if (logicalOperators.contains(operator)) {
+            return leftType.equals("boolean") && rightType.equals("boolean") ? "boolean" : "error";
+        } else if (arithmeticOperators.contains(operator)) {
+            return numericTypes.contains(leftType) && leftType.equals(rightType) ? leftType : "error";
+        } else if (comparativeOperators.contains(operator)) {
+            return leftType.equals(rightType) ? leftType : "error";
+        } else {
+            System.out.println("I do not deal with this operator: " + operator);
+        }
+        return "error";
     }
 
     @Override
@@ -642,22 +673,20 @@ class VariableTable {
 
     public void addToTable(String id, String type) {
         this.idTable.add(new IdType(id, type.toLowerCase()));
+        System.out.println(this.idTable.toString());
     }
 
     public void addToTable(String id, String type, ArrayList<ArgumentHelper> arguments) {
-        this.functionTable.add(new FunctionType(id, type.toLowerCase(),
-                arguments == null ? new ArrayList<ArgumentHelper>() : arguments));
+        this.functionTable.add(new FunctionType(id, type.toLowerCase(), arguments));
     }
 
     public boolean variableExists(String id) {
-        boolean exists = false;
         for (int i = 0; i < this.idTable.size(); i++) {
-            if (this.idTable.get(i).getId() == id) {
-                exists = true;
-                break;
+            if (this.idTable.get(i).getId().equals(id)) {
+                return true;
             }
         }
-        return exists;
+        return false;
     }
 
     public boolean functionExists(String id, ArrayList<String> argumentTypes) {
@@ -685,9 +714,9 @@ class VariableTable {
     }
 
     public String getIdType(String id) {
-        String type = null;
+        String type = "error";
         for (int i = 0; i < this.idTable.size(); i++) {
-            if (this.idTable.get(i).getId() == id) {
+            if (this.idTable.get(i).getId().equals(id)) {
                 type = this.idTable.get(i).getType();
                 break;
             }
@@ -732,6 +761,11 @@ class IdType {
 
     public String getType() {
         return this.type;
+    }
+
+    @Override
+    public String toString() {
+        return "id: " + this.id + " type: " + this.type;
     }
 }
 

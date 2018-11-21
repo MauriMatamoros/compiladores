@@ -54,7 +54,7 @@ multiplication = "*"
 division = "/"
 addition = "+"
 substraction = "-"
-mod = "Mod"
+mod = "MOD"
 multiplicationOperators = {multiplication}|{division}
 additionOperators = {addition}|{substraction}
 
