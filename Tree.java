@@ -500,7 +500,6 @@ class BinaryExpression extends Expression {
         ArrayList<String> numericTypes = new ArrayList<String>();
         numericTypes.add("integer");
         numericTypes.add("double");
-        System.out.println(operator);
         if (relationalOperators.contains(operator)) {
             return numericTypes.contains(leftType) && leftType.equals(rightType) ? "boolean" : "error";
         } else if (logicalOperators.contains(operator)) {
@@ -654,12 +653,37 @@ class FunctionCallExpression extends Expression {
 class VariableTable {
     ArrayList<IdType> idTable;
     ArrayList<FunctionType> functionTable;
+    VariableTable parentTable = null;
     ArrayList<VariableTable> subTables;
 
     public VariableTable() {
         this.idTable = new ArrayList();
         this.functionTable = new ArrayList();
         this.subTables = new ArrayList();
+    }
+
+    public VariableTable(VariableTable parentTable) {
+        this.parentTable = parentTable;
+        this.idTable = new ArrayList();
+        this.functionTable = new ArrayList();
+        this.subTables = new ArrayList();
+    }
+
+    public VariableTable increaseScope() {
+        this.subTables.add(new VariableTable(this));
+        return this.subTables.get(this.subTables.size() - 1);
+    }
+
+    public VariableTable decreaseScope() {
+        if (this.parentTable == null) {
+            System.out.println("Trying to return from orfan scope");
+            return this;
+        }
+        return this.parentTable;
+    }
+
+    public boolean hasParent() {
+        return this.parentTable != null;
     }
 
     // TODO throw error if already exists ****optional*****
@@ -678,6 +702,7 @@ class VariableTable {
 
     public void addToTable(String id, String type, ArrayList<ArgumentHelper> arguments) {
         this.functionTable.add(new FunctionType(id, type.toLowerCase(), arguments));
+        System.out.println(this.functionTable.toString());
     }
 
     public boolean variableExists(String id) {
@@ -686,11 +711,13 @@ class VariableTable {
                 return true;
             }
         }
+        if (this.hasParent()) {
+            return this.parentTable.variableExists(id);
+        }
         return false;
     }
 
     public boolean functionExists(String id, ArrayList<String> argumentTypes) {
-        boolean exists = false;
         for (int i = 0; i < this.functionTable.size(); i++) {
             FunctionType currentFunction = this.functionTable.get(i);
             if (currentFunction.getId().equals(id)) {
@@ -704,24 +731,27 @@ class VariableTable {
                         }
                     }
                     if (argumentsAreEqual) {
-                        exists = true;
-                        break;
+                        return true;
                     }
                 }
             }
         }
-        return exists;
+        if (this.hasParent()) {
+            return this.parentTable.functionExists(id, argumentTypes);
+        }
+        return false;
     }
 
     public String getIdType(String id) {
-        String type = "error";
         for (int i = 0; i < this.idTable.size(); i++) {
             if (this.idTable.get(i).getId().equals(id)) {
-                type = this.idTable.get(i).getType();
-                break;
+                return this.idTable.get(i).getType();
             }
         }
-        return type;
+        if (this.hasParent()) {
+            return this.parentTable.getIdType(id);
+        }
+        return "error";
     }
 
     public String getFunctionType(String id, ArrayList<String> argumentTypes) {
@@ -743,7 +773,16 @@ class VariableTable {
                 }
             }
         }
+        if (this.hasParent()) {
+            return this.parentTable.getFunctionType(id, argumentTypes);
+        }
         return "error";
+    }
+
+    @Override
+    public String toString() {
+        return "Variable Table: \n" + this.idTable.toString() + "\n Function Table: \n" + this.functionTable.toString()
+                + "\n Sub Tables: \n" + this.subTables.toString();
     }
 }
 
@@ -765,7 +804,7 @@ class IdType {
 
     @Override
     public String toString() {
-        return "id: " + this.id + " type: " + this.type;
+        return this.type + " " + this.id;
     }
 }
 
@@ -776,6 +815,10 @@ class FunctionType {
     public FunctionType(String id, String type, ArrayList<ArgumentHelper> arguments) {
         this.id = id;
         this.type = type.toLowerCase();
+        for (int i = 0; i < arguments.size(); i++) {
+            ArgumentHelper temporary = arguments.get(i);
+            temporary.type = temporary.type.toLowerCase();
+        }
         this.arguments = arguments;
     }
 
@@ -798,5 +841,10 @@ class FunctionType {
             types.add(this.arguments.get(i).type);
         }
         return types;
+    }
+
+    @Override
+    public String toString() {
+        return this.id + " " + this.type + " " + this.arguments.toString();
     }
 }
