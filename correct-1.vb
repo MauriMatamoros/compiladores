@@ -10,18 +10,18 @@ Sub Main()
     x = 1
     forfunc(x)
     If x > 1 Then
-        Dim sMessage As String
+        Dim sxMessage As String
     ElseIf x < 1 Then
         Dim hello As String
     Else
-        Dim bool As Boolean
+        Dim boole As Boolean
     End If
 End Sub
 
 
 Sub Hello (s As String)
     Dim number As Integer
-    number = 0
+    number = 0 * (2 + 5) / 8 - 1 
     Do 
     number = number + 1
     Loop While number < 201

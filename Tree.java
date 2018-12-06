@@ -11,6 +11,8 @@ public abstract class Tree {
 
     public abstract boolean semanticTest(VariableTable variableTable);
 
+    public abstract void generateIntermediateCode(IntermediateCode code, VariableTable variableTable);
+
     public void semanticError(String message) {
         System.out.println(
                 "Semantic Error \"" + message + "\" in line: " + (line + 1) + " and column: " + (column + 1) + " ");
@@ -69,6 +71,13 @@ class ListClass<T> extends Tree {
     public boolean semanticTest(VariableTable variableTable) {
         return true;
     }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+        for (int i = 0; i < this.elements.size(); i++) {
+            ((Tree) this.elements.get(i)).generateIntermediateCode(code, variableTable);
+        }
+    }
 }
 
 abstract class StatementClass extends Tree {
@@ -97,6 +106,10 @@ class DeclarationStatement extends StatementClass {
         return true;
     }
 
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+    }
+
     @Override
     public Tree[] getChildren() {
         return null;
@@ -119,6 +132,10 @@ class ForStatement extends StatementClass {
 
     public boolean semanticTest(VariableTable variableTable) {
         return true;
+    }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
     }
 
     @Override
@@ -144,6 +161,10 @@ class WhileStatement extends StatementClass {
             return false;
         }
         return true;
+    }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
     }
 
     @Override
@@ -177,6 +198,11 @@ class AssignmentStatement extends StatementClass {
         return true;
     }
 
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+        this.expression.generateIntermediateCode(code, variableTable);
+    }
+
     @Override
     public Tree[] getChildren() {
         return new Tree[] { expression };
@@ -203,6 +229,10 @@ class ReadStatement extends StatementClass {
         }
         return true;
     }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+    }
 }
 
 class WriteStatement extends StatementClass {
@@ -216,6 +246,10 @@ class WriteStatement extends StatementClass {
 
     public boolean semanticTest(VariableTable variableTable) {
         return true;
+    }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
     }
 
     @Override
@@ -249,6 +283,10 @@ class FunctionCallStatement extends StatementClass {
         return true;
     }
 
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+    }
+
     @Override
     public Tree[] getChildren() {
         return new Tree[] { expressions };
@@ -277,6 +315,10 @@ class ConditionalStatement extends StatementClass {
         return true;
     }
 
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+    }
+
     @Override
     public Tree[] getChildren() {
         return new Tree[] { expression, statementsIfTrue, statementsIfFalse };
@@ -296,6 +338,14 @@ class ModuleListClass<T> extends Tree {
 
     public boolean semanticTest(VariableTable variableTable) {
         return true;
+    }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+        ((Tree) module).generateIntermediateCode(code, variableTable);
+        if (this.tail != null) {
+            tail.generateIntermediateCode(code, variableTable);
+        }
     }
 
     @Override
@@ -357,6 +407,11 @@ class ProcedureHelper extends Tree {
         return true;
     }
 
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+        this.statements.generateIntermediateCode(code, variableTable);
+    }
+
     @Override
     public Tree[] getChildren() {
         return new Tree[] { arguments, statements };
@@ -405,6 +460,10 @@ class FunctionHelper extends Tree {
         return true;
     }
 
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+    }
+
     @Override
     public Tree[] getChildren() {
         return new Tree[] { arguments, statements };
@@ -438,6 +497,10 @@ class ArgumentHelper extends Tree {
 
     public boolean semanticTest(VariableTable variableTable) {
         return true;
+    }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
     }
 
 }
@@ -476,6 +539,19 @@ class BinaryExpression extends Expression {
         }
         // TODO check if types are compatible with operator
         return true;
+    }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        String leftResult;
+        String rightResult;
+        this.left.generateIntermediateCode(code, variableTable);
+        leftResult = code.popHeap();
+        this.right.generateIntermediateCode(code, variableTable);
+        rightResult = code.popHeap();
+        TemporaryVariable temporaryVariable = code.newTemporary(
+                resultingType(this.left.getType(variableTable), this.right.getType(variableTable), this.operator));
+        code.pushStack(this.operator.toLowerCase(), leftResult, rightResult, temporaryVariable.toString());
+        code.pushHeap(temporaryVariable.toString());
     }
 
     public String resultingType(String leftType, String rightType, String operator) {
@@ -551,6 +627,15 @@ class UnaryExpression extends Expression {
         return true;
     }
 
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        String rightResult;
+        this.right.generateIntermediateCode(code, variableTable);
+        rightResult = code.popHeap();
+        TemporaryVariable temporaryVariable = code.newTemporary(this.right.getType(variableTable));
+        code.pushStack(this.operator.toLowerCase(), "", rightResult, temporaryVariable.toString());
+        code.pushHeap(temporaryVariable.toString());
+    }
+
     @Override
     public Tree[] getChildren() {
         return new Tree[] { right };
@@ -582,6 +667,12 @@ class LiteralExpression<T> extends Expression {
     public boolean semanticTest(VariableTable variableTable) {
         return true;
     }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(variableTable));
+        code.pushStack("assign", "", this.value.toString(), temporaryVariable.toString());
+        code.pushHeap(temporaryVariable.toString());
+    }
 }
 
 class IdExpression extends Expression {
@@ -606,6 +697,12 @@ class IdExpression extends Expression {
             return false;
         }
         return true;
+    }
+
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(variableTable));
+        code.pushStack("assign", "", "~" + this.id, temporaryVariable.toString());
+        code.pushHeap(temporaryVariable.toString());
     }
 }
 
@@ -644,6 +741,10 @@ class FunctionCallExpression extends Expression {
         return true;
     }
 
+    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+        // TODO
+    }
+
     @Override
     public Tree[] getChildren() {
         return new Tree[] { expressions };
@@ -655,6 +756,7 @@ class VariableTable {
     ArrayList<FunctionType> functionTable;
     VariableTable parentTable = null;
     ArrayList<VariableTable> subTables;
+    int currentPosition = 0;
 
     public VariableTable() {
         this.idTable = new ArrayList();
@@ -667,6 +769,7 @@ class VariableTable {
         this.idTable = new ArrayList();
         this.functionTable = new ArrayList();
         this.subTables = new ArrayList();
+        this.currentPosition = parentTable.currentPosition;
     }
 
     public VariableTable increaseScope() {
@@ -686,8 +789,25 @@ class VariableTable {
         return this.parentTable != null;
     }
 
+    public int getSize(String type) {
+        type = type.toLowerCase();
+        if (type.equals("string")) {
+            // TODO Maybe fix this?
+            return 128;
+        } else if (type.equals("integer")) {
+            return 4;
+        } else if (type.equals("boolean")) {
+            return 1;
+        } else if (type.equals("char")) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
     // TODO throw error if already exists ****optional*****
     public void addToTable(IdType variable) {
+        this.currentPosition += getSize(variable.getType());
         this.idTable.add(variable);
     }
 
@@ -696,13 +816,14 @@ class VariableTable {
     }
 
     public void addToTable(String id, String type) {
-        this.idTable.add(new IdType(id, type.toLowerCase()));
-        System.out.println(this.idTable.toString());
+        this.idTable.add(new IdType(id, type.toLowerCase(), this.currentPosition));
+        this.currentPosition += getSize(type);
+        // System.out.println(this.idTable.toString());
     }
 
     public void addToTable(String id, String type, ArrayList<ArgumentHelper> arguments) {
         this.functionTable.add(new FunctionType(id, type.toLowerCase(), arguments));
-        System.out.println(this.functionTable.toString());
+        // System.out.println(this.functionTable.toString());
     }
 
     public boolean variableExists(String id) {
@@ -779,19 +900,45 @@ class VariableTable {
         return "error";
     }
 
+    public boolean isEmpty() {
+        if (this.idTable.size() > 0) {
+            return false;
+        } else if (this.functionTable.size() > 0) {
+            return false;
+        } else {
+            for (int i = 0; i < this.subTables.size(); i++) {
+                if (!this.subTables.get(i).isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
     @Override
     public String toString() {
-        return "Variable Table: \n" + this.idTable.toString() + "\n Function Table: \n" + this.functionTable.toString()
-                + "\n Sub Tables: \n" + this.subTables.toString();
+        String returnValue = "";
+        for (int i = 0; i < this.subTables.size(); i++) {
+            if (!this.subTables.get(i).isEmpty()) {
+                returnValue += this.subTables.get(i).toString() + ",";
+            }
+        }
+        return "{\n" + (this.idTable.isEmpty() ? "" : ("\"Variable-Table\": \n" + this.idTable.toString() + "\n"))
+                + (this.functionTable.isEmpty() ? ""
+                        : ("\"Function-Table\": \n" + this.functionTable.toString() + "\n"))
+                + (returnValue.equals("") ? "" : ("\"Sub-Tables\": \n [" + returnValue + "]")) + "\n}";
     }
 }
 
 class IdType {
-    String id, type;
+    String id;
+    String type;
+    int position;
 
-    public IdType(String id, String type) {
+    public IdType(String id, String type, int position) {
         this.id = id;
         this.type = type.toLowerCase();
+        this.position = position;
     }
 
     public String getId() {
@@ -804,7 +951,7 @@ class IdType {
 
     @Override
     public String toString() {
-        return this.type + " " + this.id;
+        return this.type + " " + this.id + " " + this.position;
     }
 }
 
@@ -846,5 +993,95 @@ class FunctionType {
     @Override
     public String toString() {
         return this.id + " " + this.type + " " + this.arguments.toString();
+    }
+}
+
+class IntermediateCode {
+    ArrayList<FourAddressCode> stack;
+    ArrayList<String> heap;
+    int currentTemporary = 0;
+
+    public IntermediateCode() {
+        this.stack = new ArrayList<FourAddressCode>();
+        this.heap = new ArrayList<String>();
+    }
+
+    public FourAddressCode popStack() {
+        FourAddressCode deleted = this.stack.get(this.stack.size() - 1);
+        this.stack.remove(this.stack.size() - 1);
+        return deleted;
+    }
+
+    public String popHeap() {
+        String deleted = this.heap.get(this.heap.size() - 1);
+        this.heap.remove(this.heap.size() - 1);
+        return deleted;
+    }
+
+    public void pushHeap(String T) {
+        this.heap.add(T);
+    }
+
+    public void pushStack(FourAddressCode code) {
+        this.stack.add(code);
+    }
+
+    public void pushStack(String operator, String left, String right, String direction) {
+        this.stack.add(new FourAddressCode(operator, left, right, direction));
+    }
+
+    public TemporaryVariable newTemporary(String type) {
+        this.currentTemporary++;
+        return new TemporaryVariable(type, this.currentTemporary);
+    }
+
+    @Override
+    public String toString() {
+        String returnValue = "";
+        for (int i = 0; i < this.stack.size(); i++) {
+            returnValue += this.stack.get(i).toString() + "\n";
+        }
+        return returnValue;
+    }
+}
+
+class FourAddressCode {
+    String operator;
+    String left;
+    String right;
+    String direction;
+
+    public FourAddressCode(String operator, String left, String right, String position) {
+        this.operator = operator;
+        this.left = left;
+        this.right = right;
+        this.direction = position;
+    }
+
+    public FourAddressCode(String operator, String left, String right) {
+        this.operator = operator;
+        this.left = left;
+        this.right = right;
+    }
+
+    @Override
+    public String toString() {
+        return "Operator: " + this.operator + " Left: " + this.left + " Right: " + this.right + " Position: "
+                + this.direction;
+    }
+}
+
+class TemporaryVariable {
+    int number;
+    String type;
+
+    public TemporaryVariable(String type, int number) {
+        this.type = type;
+        this.number = number;
+    }
+
+    @Override
+    public String toString() {
+        return "t" + this.number;
     }
 }

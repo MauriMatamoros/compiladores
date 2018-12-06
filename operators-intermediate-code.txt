@@ -1,0 +1,15 @@
++
+-
+*
+/
+=
+if>
+if<
+if=
+if>=
+if<=
+goto
+and
+not
+or
+mod

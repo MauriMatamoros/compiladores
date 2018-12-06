@@ -6,6 +6,7 @@ import java.util.List;
 
 action code
 {:
+    public IntermediateCode code = new IntermediateCode();
     public VariableTable variableTable = new VariableTable();
     public String repeat(int count, String with) {
         return new String(new char[count]).replace("\0", with);
@@ -123,8 +124,11 @@ Program         ::= PreModuleList:list
                             Print(list, 0);
                             if (!SemanticAnalysis(list)) {
                                 System.out.println("Semantic error. Stopping Compilation.");
+                            } else {
+                                System.out.println(variableTable.toString());
+                                list.generateIntermediateCode(code, variableTable);
+                                System.out.println(code.toString());
                             }
-                            System.out.println(variableTable);
                         } else {
                             System.out.println(errors);
                             System.out.println("Syntax error. Stopping Compilation.");
