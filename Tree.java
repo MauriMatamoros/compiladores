@@ -135,7 +135,7 @@ class ForStatement extends StatementClass {
     }
 
     public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+
     }
 
     @Override
@@ -164,7 +164,12 @@ class WhileStatement extends StatementClass {
     }
 
     public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+        String trueLabel = code.newLabel();
+        code.pushStack("label", "", "", trueLabel);
+        this.statements.generateIntermediateCode(code, variableTable);
+        this.expression.generateIntermediateCode(code, variableTable);
+        String result = code.popHeap();
+        code.pushStack("if>", result, "0", trueLabel);
     }
 
     @Override
@@ -199,8 +204,9 @@ class AssignmentStatement extends StatementClass {
     }
 
     public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
         this.expression.generateIntermediateCode(code, variableTable);
+        String result = code.popHeap();
+        code.pushStack("assign", "", result, "~" + this.id);
     }
 
     @Override
@@ -316,7 +322,18 @@ class ConditionalStatement extends StatementClass {
     }
 
     public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+        this.expression.generateIntermediateCode(code, variableTable);
+        String result = code.popHeap();
+        String trueLabel = code.newLabel();
+        String falseLabel = code.newLabel();
+        code.pushStack("if>", result, "0", trueLabel);
+        code.pushStack("goto", "", "", falseLabel);
+        code.pushStack("label", "", "", trueLabel);
+        this.statementsIfTrue.generateIntermediateCode(code, variableTable);
+        code.pushStack("label", "", "", falseLabel);
+        if (this.statementsIfFalse != null) {
+            this.statementsIfFalse.generateIntermediateCode(code, variableTable);
+        }
     }
 
     @Override
@@ -1000,6 +1017,7 @@ class IntermediateCode {
     ArrayList<FourAddressCode> stack;
     ArrayList<String> heap;
     int currentTemporary = 0;
+    int currentLabel = 0;
 
     public IntermediateCode() {
         this.stack = new ArrayList<FourAddressCode>();
@@ -1035,6 +1053,11 @@ class IntermediateCode {
         return new TemporaryVariable(type, this.currentTemporary);
     }
 
+    public String newLabel() {
+        this.currentLabel++;
+        return "@Label" + this.currentLabel;
+    }
+
     @Override
     public String toString() {
         String returnValue = "";
@@ -1066,8 +1089,7 @@ class FourAddressCode {
 
     @Override
     public String toString() {
-        return "Operator: " + this.operator + " Left: " + this.left + " Right: " + this.right + " Position: "
-                + this.direction;
+        return this.operator + "\t " + this.left + "\t " + this.right + "\t " + this.direction;
     }
 }
 

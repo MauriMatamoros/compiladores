@@ -15,6 +15,9 @@ Sub Main()
         Dim hello As String
     Else
         Dim boole As Boolean
+        For x = 1 To 50
+            Print x
+        Next
     End If
 End Sub
 
