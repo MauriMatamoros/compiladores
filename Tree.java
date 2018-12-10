@@ -135,7 +135,18 @@ class ForStatement extends StatementClass {
     }
 
     public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-
+        String forLabel = code.newLabel();
+        String falseLabel = code.newLabel();
+        this.assignment.generateIntermediateCode(code, variableTable);
+        String variable = "~" + this.assignment.id;
+        String forComparison = code.newTemporary("boolean").toString();
+        code.pushStack("label", "", "", forLabel);
+        code.pushStack("<", variable, "" + this.integer, forComparison);
+        code.pushStack("if>", forComparison, "1", falseLabel);
+        this.statements.generateIntermediateCode(code, variableTable);
+        code.pushStack("+", variable, "1", variable);
+        code.pushStack("goto", "", "", forLabel);
+        code.pushStack("label", "", "", falseLabel);
     }
 
     @Override
