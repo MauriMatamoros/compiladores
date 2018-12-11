@@ -28,6 +28,7 @@ action code
     public boolean SemanticAnalysis(Tree tree) {
         boolean success = true;
         Tree[] children = tree.getChildren();
+        tree.currentScope = variableTable;
         success = tree.semanticTest(variableTable) && success;
         if (children != null) {
             variableTable = variableTable.increaseScope();
@@ -125,8 +126,11 @@ Program         ::= PreModuleList:list
                             if (!SemanticAnalysis(list)) {
                                 System.out.println("Semantic error. Stopping Compilation.");
                             } else {
+                                while (variableTable.hasParent()) {
+                                    variableTable = variableTable.decreaseScope();
+                                }
                                 System.out.println(variableTable.toString());
-                                list.generateIntermediateCode(code, variableTable);
+                                list.generateIntermediateCode(code);
                                 System.out.println(code.toString());
                             }
                         } else {
@@ -333,9 +337,9 @@ Expression          ::= Expression:expL ADDITIONOPERATOR:opp Expression:expR
                     | CHAR:c
                         {: RESULT = new LiteralExpression<Character> (cleft, cright, c.charAt(0)); :}
                     | TRUE:t
-                        {: RESULT = new LiteralExpression<Integer> (tleft, tright, -1); :}
+                        {: RESULT = new LiteralExpression<Boolean> (tleft, tright, true); :}
                     | FALSE:f
-                        {: RESULT = new LiteralExpression<Integer> (fleft, fright, 0); :}
+                        {: RESULT = new LiteralExpression<Boolean> (fleft, fright, false); :}
                     | ID:id OPENPARENTHESIS ExpressionList:elist CLOSEPARENTHESIS
                         {: RESULT = new FunctionCallExpression(idleft, idright, id, elist); :}
                     | ID:id OPENPARENTHESIS CLOSEPARENTHESIS

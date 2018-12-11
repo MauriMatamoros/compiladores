@@ -3,6 +3,7 @@ import java.util.ArrayList;
 public abstract class Tree {
     protected String description;
     public int line, column;
+    public VariableTable currentScope;
 
     protected Tree(int line, int column) {
         this.line = line;
@@ -11,7 +12,7 @@ public abstract class Tree {
 
     public abstract boolean semanticTest(VariableTable variableTable);
 
-    public abstract void generateIntermediateCode(IntermediateCode code, VariableTable variableTable);
+    public abstract void generateIntermediateCode(IntermediateCode code);
 
     public void semanticError(String message) {
         System.out.println(
@@ -72,10 +73,9 @@ class ListClass<T> extends Tree {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+    public void generateIntermediateCode(IntermediateCode code) {
         for (int i = 0; i < this.elements.size(); i++) {
-            ((Tree) this.elements.get(i)).generateIntermediateCode(code, variableTable);
+            ((Tree) this.elements.get(i)).generateIntermediateCode(code);
         }
     }
 }
@@ -106,7 +106,7 @@ class DeclarationStatement extends StatementClass {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+    public void generateIntermediateCode(IntermediateCode code) {
         // TODO
     }
 
@@ -134,16 +134,16 @@ class ForStatement extends StatementClass {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+    public void generateIntermediateCode(IntermediateCode code) {
         String forLabel = code.newLabel();
         String falseLabel = code.newLabel();
-        this.assignment.generateIntermediateCode(code, variableTable);
+        this.assignment.generateIntermediateCode(code);
         String variable = "~" + this.assignment.id;
         String forComparison = code.newTemporary("boolean").toString();
         code.pushStack("label", "", "", forLabel);
         code.pushStack("<", variable, "" + this.integer, forComparison);
-        code.pushStack("if>", forComparison, "1", falseLabel);
-        this.statements.generateIntermediateCode(code, variableTable);
+        code.pushStack("if<", forComparison, "1", falseLabel);
+        this.statements.generateIntermediateCode(code);
         code.pushStack("+", variable, "1", variable);
         code.pushStack("goto", "", "", forLabel);
         code.pushStack("label", "", "", falseLabel);
@@ -174,11 +174,11 @@ class WhileStatement extends StatementClass {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+    public void generateIntermediateCode(IntermediateCode code) {
         String trueLabel = code.newLabel();
         code.pushStack("label", "", "", trueLabel);
-        this.statements.generateIntermediateCode(code, variableTable);
-        this.expression.generateIntermediateCode(code, variableTable);
+        this.statements.generateIntermediateCode(code);
+        this.expression.generateIntermediateCode(code);
         String result = code.popHeap();
         code.pushStack("if>", result, "0", trueLabel);
     }
@@ -214,8 +214,8 @@ class AssignmentStatement extends StatementClass {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        this.expression.generateIntermediateCode(code, variableTable);
+    public void generateIntermediateCode(IntermediateCode code) {
+        this.expression.generateIntermediateCode(code);
         String result = code.popHeap();
         code.pushStack("assign", "", result, "~" + this.id);
     }
@@ -247,8 +247,8 @@ class ReadStatement extends StatementClass {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+    public void generateIntermediateCode(IntermediateCode code) {
+        code.pushStack("read", "", "", "~" + this.id);
     }
 }
 
@@ -265,8 +265,10 @@ class WriteStatement extends StatementClass {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+    public void generateIntermediateCode(IntermediateCode code) {
+        this.expression.generateIntermediateCode(code);
+        String result = code.popHeap();
+        code.pushStack("write", "", "", result);
     }
 
     @Override
@@ -300,8 +302,16 @@ class FunctionCallStatement extends StatementClass {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+    public void generateIntermediateCode(IntermediateCode code) {
+        this.expressions.generateIntermediateCode(code);
+        String[] results = new String[this.expressions.getList().size()];
+        for (int i = results.length - 1; i >= 0; i--) {
+            results[i] = code.popHeap();
+        }
+        for (int i = 0; i < results.length; i++) {
+            code.pushStack("param", "", "", results[i]);
+        }
+        code.pushStack("call", "", "", this.id);
     }
 
     @Override
@@ -332,18 +342,18 @@ class ConditionalStatement extends StatementClass {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        this.expression.generateIntermediateCode(code, variableTable);
+    public void generateIntermediateCode(IntermediateCode code) {
+        this.expression.generateIntermediateCode(code);
         String result = code.popHeap();
         String trueLabel = code.newLabel();
         String falseLabel = code.newLabel();
         code.pushStack("if>", result, "0", trueLabel);
         code.pushStack("goto", "", "", falseLabel);
         code.pushStack("label", "", "", trueLabel);
-        this.statementsIfTrue.generateIntermediateCode(code, variableTable);
+        this.statementsIfTrue.generateIntermediateCode(code);
         code.pushStack("label", "", "", falseLabel);
         if (this.statementsIfFalse != null) {
-            this.statementsIfFalse.generateIntermediateCode(code, variableTable);
+            this.statementsIfFalse.generateIntermediateCode(code);
         }
     }
 
@@ -368,11 +378,10 @@ class ModuleListClass<T> extends Tree {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
-        ((Tree) module).generateIntermediateCode(code, variableTable);
+    public void generateIntermediateCode(IntermediateCode code) {
+        ((Tree) module).generateIntermediateCode(code);
         if (this.tail != null) {
-            tail.generateIntermediateCode(code, variableTable);
+            tail.generateIntermediateCode(code);
         }
     }
 
@@ -435,9 +444,9 @@ class ProcedureHelper extends Tree {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+    public void generateIntermediateCode(IntermediateCode code) {
         // TODO
-        this.statements.generateIntermediateCode(code, variableTable);
+        this.statements.generateIntermediateCode(code);
     }
 
     @Override
@@ -488,7 +497,7 @@ class FunctionHelper extends Tree {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+    public void generateIntermediateCode(IntermediateCode code) {
         // TODO
     }
 
@@ -527,8 +536,8 @@ class ArgumentHelper extends Tree {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+    public void generateIntermediateCode(IntermediateCode code) {
+        // Maybe?
     }
 
 }
@@ -550,7 +559,7 @@ class BinaryExpression extends Expression {
         super(line, column);
         this.left = left;
         this.right = right;
-        this.operator = operator;
+        this.operator = operator.toLowerCase();
         this.description = "Binary Expression  " + operator;
     }
 
@@ -569,16 +578,31 @@ class BinaryExpression extends Expression {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+    public void generateIntermediateCode(IntermediateCode code) {
+        boolean isBoolean = this.getType(this.currentScope).equals("boolean");
         String leftResult;
         String rightResult;
-        this.left.generateIntermediateCode(code, variableTable);
+        this.left.generateIntermediateCode(code);
         leftResult = code.popHeap();
-        this.right.generateIntermediateCode(code, variableTable);
+        String shortCircuit = code.newLabel();
+        if (isBoolean) {
+            if (this.operator.toLowerCase().equals("and")) {
+                code.pushStack("if<", leftResult, "1", shortCircuit);
+            } else if (this.operator.toLowerCase().equals("or")) {
+                code.pushStack("if>", leftResult, "0", shortCircuit);
+            }
+        }
+        this.right.generateIntermediateCode(code);
         rightResult = code.popHeap();
-        TemporaryVariable temporaryVariable = code.newTemporary(
-                resultingType(this.left.getType(variableTable), this.right.getType(variableTable), this.operator));
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
         code.pushStack(this.operator.toLowerCase(), leftResult, rightResult, temporaryVariable.toString());
+        if (isBoolean) {
+            String notShortCircuit = code.newLabel();
+            code.pushStack("goto", "", "", notShortCircuit);
+            code.pushStack("label", "", "", shortCircuit);
+            code.pushStack("assign", "", leftResult, temporaryVariable.toString());
+            code.pushStack("label", "", "", notShortCircuit);
+        }
         code.pushHeap(temporaryVariable.toString());
     }
 
@@ -592,15 +616,14 @@ class BinaryExpression extends Expression {
         comparativeOperators.add("<>");
         comparativeOperators.add("=");
         ArrayList<String> logicalOperators = new ArrayList<String>();
-        logicalOperators.add("AND");
-        logicalOperators.add("OR");
-        logicalOperators.add("NOT");
+        logicalOperators.add("and");
+        logicalOperators.add("or");
         ArrayList<String> arithmeticOperators = new ArrayList<String>();
         arithmeticOperators.add("*");
         arithmeticOperators.add("/");
         arithmeticOperators.add("-");
         arithmeticOperators.add("+");
-        arithmeticOperators.add("MOD");
+        arithmeticOperators.add("mod");
         ArrayList<String> numericTypes = new ArrayList<String>();
         numericTypes.add("integer");
         numericTypes.add("double");
@@ -636,7 +659,7 @@ class UnaryExpression extends Expression {
     }
 
     public String getType(VariableTable variableTable) {
-        return right.getType(variableTable);
+        return this.right.getType(variableTable);
     }
 
     public boolean semanticTest(VariableTable variableTable) {
@@ -655,11 +678,11 @@ class UnaryExpression extends Expression {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
+    public void generateIntermediateCode(IntermediateCode code) {
         String rightResult;
-        this.right.generateIntermediateCode(code, variableTable);
+        this.right.generateIntermediateCode(code);
         rightResult = code.popHeap();
-        TemporaryVariable temporaryVariable = code.newTemporary(this.right.getType(variableTable));
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
         code.pushStack(this.operator.toLowerCase(), "", rightResult, temporaryVariable.toString());
         code.pushHeap(temporaryVariable.toString());
     }
@@ -696,8 +719,8 @@ class LiteralExpression<T> extends Expression {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(variableTable));
+    public void generateIntermediateCode(IntermediateCode code) {
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
         code.pushStack("assign", "", this.value.toString(), temporaryVariable.toString());
         code.pushHeap(temporaryVariable.toString());
     }
@@ -727,8 +750,8 @@ class IdExpression extends Expression {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(variableTable));
+    public void generateIntermediateCode(IntermediateCode code) {
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
         code.pushStack("assign", "", "~" + this.id, temporaryVariable.toString());
         code.pushHeap(temporaryVariable.toString());
     }
@@ -736,7 +759,6 @@ class IdExpression extends Expression {
 
 class FunctionCallExpression extends Expression {
     String id;
-
     ListClass<Expression> expressions;
 
     public FunctionCallExpression(int line, int column, String id, ListClass<Expression> expressions) {
@@ -769,8 +791,17 @@ class FunctionCallExpression extends Expression {
         return true;
     }
 
-    public void generateIntermediateCode(IntermediateCode code, VariableTable variableTable) {
-        // TODO
+    public void generateIntermediateCode(IntermediateCode code) {
+        this.expressions.generateIntermediateCode(code);
+        String[] results = new String[this.expressions.getList().size()];
+        for (int i = results.length - 1; i >= 0; i--) {
+            results[i] = code.popHeap();
+        }
+        for (int i = 0; i < results.length; i++) {
+            code.pushStack("param", "", "", results[i]);
+        }
+        code.pushStack("call", "", "", this.id);
+        code.pushHeap("return");
     }
 
     @Override
@@ -841,6 +872,10 @@ class VariableTable {
 
     public void addToTable(FunctionType function) {
         this.functionTable.add(function);
+        ArrayList<ArgumentHelper> arguments = function.arguments;
+        for (int i = 0; i < arguments.size(); i++) {
+            this.addToTable(arguments.get(i).id, arguments.get(i).type);
+        }
     }
 
     public void addToTable(String id, String type) {
@@ -851,6 +886,9 @@ class VariableTable {
 
     public void addToTable(String id, String type, ArrayList<ArgumentHelper> arguments) {
         this.functionTable.add(new FunctionType(id, type.toLowerCase(), arguments));
+        for (int i = 0; i < arguments.size(); i++) {
+            this.addToTable(arguments.get(i).id, arguments.get(i).type);
+        }
         // System.out.println(this.functionTable.toString());
     }
 
@@ -1042,6 +1080,11 @@ class IntermediateCode {
     }
 
     public String popHeap() {
+        if (this.heap.isEmpty()) {
+            System.out.println("Heap is empty, you shouldn't see this message.");
+            this.pushStack("un", "mensaje", "de", "error");
+            return "";
+        }
         String deleted = this.heap.get(this.heap.size() - 1);
         this.heap.remove(this.heap.size() - 1);
         return deleted;

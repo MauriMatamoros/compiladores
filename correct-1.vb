@@ -1,5 +1,10 @@
 ' esto es un comment
 Function forfunc (a As Integer) As Integer
+    a = 10
+End Function
+
+Function eureka (b As Integer) As Integer
+    b = 1 + 2
 End Function
 
 Sub Main()
@@ -7,20 +12,33 @@ Sub Main()
     Dim sMessage As String
     Dim bool As Boolean
     Dim x As Integer
+    bool = true
+    If bool OR false Then
+        x = 9
+    Else
+        x = 1300
+    End If
+
+    If false AND bool Then
+        x = 112
+    Else
+        x = 42
+    End If
     x = 1
-    forfunc(x)
+    x = forfunc(x)
     If x > 1 Then
         Dim sxMessage As String
+        eureka(x)
     ElseIf x < 1 Then
         Dim hello As String
     Else
         Dim boole As Boolean
         For x = 1 To 50
+            x = 2
             Print x
         Next
     End If
 End Sub
-
 
 Sub Hello (s As String)
     Dim number As Integer
