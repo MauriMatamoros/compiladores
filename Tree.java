@@ -107,7 +107,7 @@ class DeclarationStatement extends StatementClass {
     }
 
     public void generateIntermediateCode(IntermediateCode code) {
-        // TODO
+        // no code is generated for declarations
     }
 
     @Override
@@ -445,8 +445,9 @@ class ProcedureHelper extends Tree {
     }
 
     public void generateIntermediateCode(IntermediateCode code) {
-        // TODO
+        code.pushStack("label", "", "", "@~" + this.id);
         this.statements.generateIntermediateCode(code);
+        code.pushStack("return", "", "", "");
     }
 
     @Override
@@ -493,12 +494,20 @@ class FunctionHelper extends Tree {
                 }
             }
         }
+        if (variableTable.variableExists(this.id)) {
+            semanticError("Can't create function because there is a variable already using the same name: " + this.id);
+            return false;
+        }
+        variableTable.addToTable(this.id, this.type);
+        // TODO validate existance of return
         variableTable.addToTable(this.id, this.type, temporaryArguments);
         return true;
     }
 
     public void generateIntermediateCode(IntermediateCode code) {
-        // TODO
+        code.pushStack("label", "", "", "@~" + this.id);
+        this.statements.generateIntermediateCode(code);
+        code.pushStack("return", "", "", "");
     }
 
     @Override
@@ -574,7 +583,11 @@ class BinaryExpression extends Expression {
             semanticError("Type: " + leftType + " is not comapatible with: " + rightType);
             return false;
         }
-        // TODO check if types are compatible with operator
+        if (this.getType(variableTable).equals("error")) {
+            semanticError("Type: " + leftType + " and type: " + rightType + " are not compatible with this operator: "
+                    + this.operator);
+            return false;
+        }
         return true;
     }
 
@@ -586,16 +599,16 @@ class BinaryExpression extends Expression {
         leftResult = code.popHeap();
         String shortCircuit = code.newLabel();
         if (isBoolean) {
-            if (this.operator.toLowerCase().equals("and")) {
+            if (this.operator.equals("and")) {
                 code.pushStack("if<", leftResult, "1", shortCircuit);
-            } else if (this.operator.toLowerCase().equals("or")) {
+            } else if (this.operator.equals("or")) {
                 code.pushStack("if>", leftResult, "0", shortCircuit);
             }
         }
         this.right.generateIntermediateCode(code);
         rightResult = code.popHeap();
         TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
-        code.pushStack(this.operator.toLowerCase(), leftResult, rightResult, temporaryVariable.toString());
+        code.pushStack(this.operator, leftResult, rightResult, temporaryVariable.toString());
         if (isBoolean) {
             String notShortCircuit = code.newLabel();
             code.pushStack("goto", "", "", notShortCircuit);
@@ -852,7 +865,7 @@ class VariableTable {
         type = type.toLowerCase();
         if (type.equals("string")) {
             // TODO Maybe fix this?
-            return 128;
+            return 256;
         } else if (type.equals("integer")) {
             return 4;
         } else if (type.equals("boolean")) {
