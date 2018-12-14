@@ -139,7 +139,7 @@ class ForStatement extends StatementClass {
         String falseLabel = code.newLabel();
         this.assignment.generateIntermediateCode(code);
         String variable = "~" + this.assignment.id;
-        String forComparison = code.newTemporary("boolean").toString();
+        String forComparison = code.newTemporary("boolean", this.currentScope).toString();
         code.pushStack("label", "", "", forLabel);
         code.pushStack("<", variable, "" + this.integer, forComparison);
         code.pushStack("if<", forComparison, "1", falseLabel);
@@ -607,13 +607,15 @@ class BinaryExpression extends Expression {
         }
         this.right.generateIntermediateCode(code);
         rightResult = code.popHeap();
-        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope), this.currentScope);
         code.pushStack(this.operator, leftResult, rightResult, temporaryVariable.toString());
         if (isBoolean) {
             String notShortCircuit = code.newLabel();
             code.pushStack("goto", "", "", notShortCircuit);
             code.pushStack("label", "", "", shortCircuit);
-            code.pushStack("assign", "", leftResult, temporaryVariable.toString());
+            if (!leftResult.equals(temporaryVariable.toString())) {
+                code.pushStack("assign", "", leftResult, temporaryVariable.toString());
+            }
             code.pushStack("label", "", "", notShortCircuit);
         }
         code.pushHeap(temporaryVariable.toString());
@@ -695,7 +697,7 @@ class UnaryExpression extends Expression {
         String rightResult;
         this.right.generateIntermediateCode(code);
         rightResult = code.popHeap();
-        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope), this.currentScope);
         code.pushStack(this.operator.toLowerCase(), "", rightResult, temporaryVariable.toString());
         code.pushHeap(temporaryVariable.toString());
     }
@@ -733,7 +735,7 @@ class LiteralExpression<T> extends Expression {
     }
 
     public void generateIntermediateCode(IntermediateCode code) {
-        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope), this.currentScope);
         code.pushStack("assign", "", this.value.toString(), temporaryVariable.toString());
         code.pushHeap(temporaryVariable.toString());
     }
@@ -764,7 +766,7 @@ class IdExpression extends Expression {
     }
 
     public void generateIntermediateCode(IntermediateCode code) {
-        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope));
+        TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope), this.currentScope);
         code.pushStack("assign", "", "~" + this.id, temporaryVariable.toString());
         code.pushHeap(temporaryVariable.toString());
     }
@@ -828,6 +830,7 @@ class VariableTable {
     ArrayList<FunctionType> functionTable;
     VariableTable parentTable = null;
     ArrayList<VariableTable> subTables;
+    int currentTemporary = 0;
     int currentPosition = 0;
 
     public VariableTable() {
@@ -994,6 +997,21 @@ class VariableTable {
         }
     }
 
+    public int nextTemporary() {
+        this.updateTemporary();
+        this.currentTemporary++;
+        return this.currentTemporary;
+    }
+
+    public int updateTemporary() {
+        if (this.parentTable != null) {
+            if (this.parentTable.updateTemporary() > this.currentTemporary) {
+                this.currentTemporary = this.parentTable.updateTemporary();
+            }
+        }
+        return this.currentTemporary;
+    }
+
     @Override
     public String toString() {
         String returnValue = "";
@@ -1078,7 +1096,6 @@ class FunctionType {
 class IntermediateCode {
     ArrayList<FourAddressCode> stack;
     ArrayList<String> heap;
-    int currentTemporary = 0;
     int currentLabel = 0;
 
     public IntermediateCode() {
@@ -1115,9 +1132,8 @@ class IntermediateCode {
         this.stack.add(new FourAddressCode(operator, left, right, direction));
     }
 
-    public TemporaryVariable newTemporary(String type) {
-        this.currentTemporary++;
-        return new TemporaryVariable(type, this.currentTemporary);
+    public TemporaryVariable newTemporary(String type, VariableTable variableTable) {
+        return new TemporaryVariable(type, variableTable.nextTemporary());
     }
 
     public String newLabel() {
