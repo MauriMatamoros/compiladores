@@ -141,10 +141,10 @@ class ForStatement extends StatementClass {
         String variable = "~" + this.assignment.id;
         String forComparison = code.newTemporary("boolean", this.currentScope).toString();
         code.pushStack("label", "", "", forLabel);
-        code.pushStack("<", variable, "" + this.integer, forComparison);
-        code.pushStack("if<", forComparison, "1", falseLabel);
+        code.pushStack("<", variable, "#" + this.integer, forComparison);
+        code.pushStack("if<", forComparison, "#1", falseLabel);
         this.statements.generateIntermediateCode(code);
-        code.pushStack("+", variable, "1", variable);
+        code.pushStack("+", variable, "#1", variable);
         code.pushStack("goto", "", "", forLabel);
         code.pushStack("label", "", "", falseLabel);
     }
@@ -180,7 +180,7 @@ class WhileStatement extends StatementClass {
         this.statements.generateIntermediateCode(code);
         this.expression.generateIntermediateCode(code);
         String result = code.popHeap();
-        code.pushStack("if>", result, "0", trueLabel);
+        code.pushStack("if>", result, "#0", trueLabel);
     }
 
     @Override
@@ -347,7 +347,7 @@ class ConditionalStatement extends StatementClass {
         String result = code.popHeap();
         String trueLabel = code.newLabel();
         String falseLabel = code.newLabel();
-        code.pushStack("if>", result, "0", trueLabel);
+        code.pushStack("if>", result, "#0", trueLabel);
         code.pushStack("goto", "", "", falseLabel);
         code.pushStack("label", "", "", trueLabel);
         this.statementsIfTrue.generateIntermediateCode(code);
@@ -600,9 +600,9 @@ class BinaryExpression extends Expression {
         String shortCircuit = code.newLabel();
         if (isBoolean) {
             if (this.operator.equals("and")) {
-                code.pushStack("if<", leftResult, "1", shortCircuit);
+                code.pushStack("if<", leftResult, "#1", shortCircuit);
             } else if (this.operator.equals("or")) {
-                code.pushStack("if>", leftResult, "0", shortCircuit);
+                code.pushStack("if>", leftResult, "#0", shortCircuit);
             }
         }
         this.right.generateIntermediateCode(code);
@@ -736,7 +736,20 @@ class LiteralExpression<T> extends Expression {
 
     public void generateIntermediateCode(IntermediateCode code) {
         TemporaryVariable temporaryVariable = code.newTemporary(this.getType(this.currentScope), this.currentScope);
-        code.pushStack("assign", "", this.value.toString(), temporaryVariable.toString());
+        String prefix;
+        String valueType = this.getType(this.currentScope);
+        if (valueType.equals("integer")) {
+            prefix = "#";
+        } else if (valueType.equals("char")) {
+            prefix = "&";
+        } else if (valueType.equals("string")) {
+            prefix = "$";
+        } else if (valueType.equals("boolean")) {
+            prefix = "|";
+        } else {
+            prefix = "error";
+        }
+        code.pushStack("assign", "", prefix + this.value.toString(), temporaryVariable.toString());
         code.pushHeap(temporaryVariable.toString());
     }
 }
@@ -1187,6 +1200,6 @@ class TemporaryVariable {
 
     @Override
     public String toString() {
-        return "t" + this.number;
+        return "^t" + this.number;
     }
 }
