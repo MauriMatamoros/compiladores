@@ -111,6 +111,7 @@ non terminal ListClass ConditionalElse;
 non terminal ForStatement For;
 non terminal WhileStatement While;
 
+precedence left EQUALTO;
 precedence left AND, OR;
 precedence left RELATIONALOPERATOR;
 precedence left ADDITIONOPERATOR;
@@ -132,6 +133,9 @@ Program         ::= PreModuleList:list
                                 System.out.println(variableTable.toString());
                                 list.generateIntermediateCode(code);
                                 System.out.println(code.toString());
+                                MIPS mips = new MIPS();
+                                mips.generateMipsCode(variableTable, code);
+
                             }
                         } else {
                             System.out.println(errors);
@@ -320,6 +324,8 @@ Expression          ::= Expression:expL ADDITIONOPERATOR:opp Expression:expR
                         {: RESULT = new BinaryExpression(expL.line, expL.column, expL, opp, expR); :}
                     | Expression:expL AND Expression:expR
                         {: RESULT = new BinaryExpression(expL.line, expL.column, expL, "AND", expR); :}
+                    | Expression:expL EQUALTO Expression:expR
+                        {: RESULT = new BinaryExpression(expL.line, expL.column, expL, "=", expR); :}
                     | Expression:expL OR Expression:expR
                         {: RESULT = new BinaryExpression(expL.line, expL.column, expL, "OR", expR); :}
                     | Expression:expL MOD Expression:expR

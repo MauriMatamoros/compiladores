@@ -1,4 +1,7 @@
 import java.util.ArrayList;
+import java.io.File;
+import java.io.PrintWriter;
+import java.lang.StringBuilder;
 
 public abstract class Tree {
     protected String description;
@@ -649,7 +652,7 @@ class BinaryExpression extends Expression {
         } else if (arithmeticOperators.contains(operator)) {
             return numericTypes.contains(leftType) && leftType.equals(rightType) ? leftType : "error";
         } else if (comparativeOperators.contains(operator)) {
-            return leftType.equals(rightType) ? leftType : "error";
+            return leftType.equals(rightType) ? "boolean" : "error";
         } else {
             System.out.println("I do not deal with this operator: " + operator);
         }
@@ -1201,5 +1204,67 @@ class TemporaryVariable {
     @Override
     public String toString() {
         return "^t" + this.number;
+    }
+}
+
+class MIPS {
+    public void generateMipsCode(VariableTable variableTable, IntermediateCode code) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(".data\n");
+        generateData(stringBuilder, variableTable);
+        stringBuilder.append(".text\n");
+        generateText(stringBuilder, code);
+        try (PrintWriter writer = new PrintWriter("code.asm", "UTF-8")) {
+            writer.println(stringBuilder.toString());
+        } catch (Exception e) {
+            System.out.println("Error while trying to write to file.");
+        }
+    }
+
+    public void generateData(StringBuilder stringBuilder, VariableTable variableTable) {
+        for (int i = 0; i < variableTable.idTable.size(); i++) {
+            IdType variable = variableTable.idTable.get(i);
+            String type;
+            if (variable.type.equals("string")) {
+                // TODO implement string
+                type = ".asciiz \"fix me\"\n";
+            } else if (variable.type.equals("boolean")) {
+                type = ".word\t0\n";
+            } else if (variable.type.equals("char")) {
+                // TODO implement char
+                type = ".asciiz \"fix me\"\n";
+            } else if (variable.type.equals("integer")) {
+                type = ".word\t0\n";
+            } else {
+                type = "error";
+            }
+            stringBuilder.append(variable.id + ":\t" + type);
+        }
+        for (int i = 0; i < variableTable.subTables.size(); i++) {
+            generateData(stringBuilder, variableTable.subTables.get(i));
+        }
+    }
+
+    public void generateText(StringBuilder stringBuilder, IntermediateCode code) {
+        for (int i = 0; i < code.stack.size(); i++) {
+            FourAddressCode temporary = code.stack.get(i);
+            String operator = temporary.operator;
+            String left = temporary.left;
+            String right = temporary.right;
+            String direction = temporary.direction;
+            switch (operator) {
+            case "+":
+                left = left.substring(1);
+                right = right.substring(1);
+                direction = direction.substring(1);
+                stringBuilder.append("add\t" + direction + ",\t" + left + ",\t" + right);
+                break;
+            case "/":
+                break;
+            default:
+                break;
+            }
+            stringBuilder.append("\n");
+        }
     }
 }

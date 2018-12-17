@@ -1,6 +1,12 @@
 ' esto es un comment
 Function forfunc (a As Integer) As Integer
     a = 10
+    If false Then
+        forfunc(a)
+    Else
+        a = a - 1
+        forfunc = a
+    End If
 End Function
 
 Function eureka (b As Integer) As Integer
@@ -26,7 +32,7 @@ Sub Main()
     End If
     x = 1
     x = forfunc(x)
-    If x > 1 Then
+    If x = 1 Then
         Dim sxMessage As String
         eureka(x)
     ElseIf x < 1 Then
