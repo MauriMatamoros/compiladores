@@ -54,3 +54,12 @@ Sub Hello (s As String)
     Loop While number < 201
     Dim sMessage As String
 End Sub
+
+//to run
+Dim x As Integer
+    Dim y As Integer
+    y = 4
+    x = 0
+    For x = 1 To 9
+        Print x
+    Next

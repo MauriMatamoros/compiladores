@@ -147,12 +147,12 @@ class ForStatement extends StatementClass {
         String forComparison = code.newTemporary("boolean", this.currentScope).toString();
         code.pushStack("label", "", "", forLabel);
         code.pushStack("<", temporary, "#" + this.integer, forComparison);
-        code.pushStack("if<", forComparison, "#1", falseLabel);
+        code.pushStack("if=", forComparison, "#0", falseLabel);
         this.statements.generateIntermediateCode(code);
         code.pushStack("+", temporary, "#1", temporary);
+        code.pushStack("assign", "", temporary, variable);
         code.pushStack("goto", "", "", forLabel);
         code.pushStack("label", "", "", falseLabel);
-        code.pushStack("assign", "", temporary, variable);
     }
 
     @Override
@@ -609,7 +609,7 @@ class BinaryExpression extends Expression {
         String shortCircuit = code.newLabel();
         if (isBoolean) {
             if (this.operator.equals("and")) {
-                code.pushStack("if<", leftResult, "#1", shortCircuit);
+                code.pushStack("if=", leftResult, "#0", shortCircuit);
             } else if (this.operator.equals("or")) {
                 code.pushStack("if>", leftResult, "#0", shortCircuit);
             }
@@ -1261,9 +1261,18 @@ class MIPS {
             String left = leftTemporary.length() > 0 ? leftTemporary.substring(1) : "";
             String right = rightTemporary.length() > 0 ? rightTemporary.substring(1) : "";
             String direction = directionTemporary.length() > 0 ? directionTemporary.substring(1) : "";
+            char rightType = rightTemporary.length() > 0 ? rightTemporary.charAt(0) : ' ';
+            char leftType = leftTemporary.length() > 0 ? leftTemporary.charAt(0) : ' ';
+            char directionType = directionTemporary.length() > 0 ? directionTemporary.charAt(0) : ' ';
             switch (operator) {
             case "+":
-                stringBuilder.append("\tadd\t$" + direction + ",\t$" + left + ",\t$" + right);
+                String add = "add";
+                if (rightType == '#') {
+                    add = "addi";
+                } else {
+                    right = "$" + right;
+                }
+                stringBuilder.append("\t" + add + "\t$" + direction + ",\t$" + left + ",\t" + right);
                 break;
             case "/":
                 stringBuilder.append("\tdiv\t$" + direction + ",\t$" + left + ",\t$" + right);
@@ -1275,16 +1284,38 @@ class MIPS {
                 stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
                 break;
             case "<":
-                stringBuilder.append("\tslt\t$" + direction + ",\t$" + left + ",\t$" + right);
+                String slt = "slt";
+                if (rightType == '^') {
+                    right = "$" + right;
+                } else if (rightType == '#') {
+                    slt = "slti";
+                }
+                if (leftType == '^') {
+                    left = "$" + left;
+                }
+                stringBuilder.append("\t" + slt + "\t$" + direction + ",\t" + left + ",\t" + right);
                 break;
             case ">":
-                stringBuilder.append("\tsgt\t$" + direction + ",\t$" + left + ",\t$" + right);
+                String sgt = "slt";
+                if (rightType == '^') {
+                    right = "$" + right;
+                } else if (rightType == '#') {
+                    sgt = "sgti";
+                }
+                if (leftType == '^') {
+                    left = "$" + left;
+                }
+                stringBuilder.append("\t" + sgt + "\t$" + direction + ",\t" + left + ",\t" + right);
                 break;
             case "=":
                 stringBuilder.append("\tseq\t$" + direction + ",\t$" + left + ",\t$" + right);
                 break;
             case "if<":
-                stringBuilder.append("\tbgt\t$" + right + ",\t$" + left + ",\t" + direction);
+                // TODO fix
+                stringBuilder.append("\tbgt\t" + right + ",\t$" + left + ",\t" + direction);
+                break;
+            case "if=":
+                stringBuilder.append("\tbeq\t$" + right + ",\t$" + left + ",\t" + direction);
                 break;
             case "if>":
                 stringBuilder.append("\tblt\t$" + right + ",\t$" + left + ",\t" + direction);
@@ -1313,8 +1344,6 @@ class MIPS {
                 stringBuilder.append("\tb\t" + direction);
                 break;
             case "assign":
-                char rightType = rightTemporary.charAt(0);
-                char directionType = directionTemporary.charAt(0);
                 switch (directionType) {
                 case '^':
                     if (rightType == '^') {
