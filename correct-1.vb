@@ -1,9 +1,14 @@
+Sub Hello ()
+    Dim y As Integer
+    y = 7
+    Print y
+End Sub
+
 Sub Main()
     Dim x As Integer
-    Dim y As Integer
-    y = 4
-    x = 0
-    For x = 1 To 9
-        Print x
-    Next
+    Read x
+    Print x
+    Hello()
+    x = x + 1000
+    Print x
 End Sub

@@ -67,7 +67,7 @@ sub = "Sub"
 function = "Function"
 openParenthesis = "("
 closeParenthesis = ")"
-readLine = "ReadLine"
+readLine = "Read"
 period = "."
 coma = ","
 

@@ -246,8 +246,12 @@ class ReadStatement extends StatementClass {
             semanticError("Variable of id: " + id + " does not exist.");
             return false;
         }
-        if (!variableTable.getIdType(id).equals("string")) {
-            semanticError("Variable of id: " + id + " is not a String.");
+        // if (!variableTable.getIdType(id).equals("string")) {
+        // semanticError("Variable of id: " + id + " is not a String.");
+        // return false;
+        // }
+        if (!variableTable.getIdType(id).equals("integer")) {
+            semanticError("Variable of id: " + id + " is not a integer.");
             return false;
         }
         return true;
@@ -296,9 +300,11 @@ class FunctionCallStatement extends StatementClass {
 
     public boolean semanticTest(VariableTable variableTable) {
         ArrayList<String> types = new ArrayList<String>();
-        ArrayList<Expression> temporaryExpressions = this.expressions.getList();
-        for (int i = 0; i < temporaryExpressions.size(); i++) {
-            types.add(temporaryExpressions.get(i).getType(variableTable));
+        if (this.expressions != null) {
+            ArrayList<Expression> temporaryExpressions = this.expressions.getList();
+            for (int i = 0; i < temporaryExpressions.size(); i++) {
+                types.add(temporaryExpressions.get(i).getType(variableTable));
+            }
         }
         if (!variableTable.functionExists(this.id, types)) {
             semanticError("The function with id: " + this.id + " and these arguments: " + types.toString()
@@ -309,13 +315,15 @@ class FunctionCallStatement extends StatementClass {
     }
 
     public void generateIntermediateCode(IntermediateCode code) {
-        this.expressions.generateIntermediateCode(code);
-        String[] results = new String[this.expressions.getList().size()];
-        for (int i = results.length - 1; i >= 0; i--) {
-            results[i] = code.popHeap();
-        }
-        for (int i = 0; i < results.length; i++) {
-            code.pushStack("param", "", "", results[i]);
+        if (this.expressions != null) {
+            this.expressions.generateIntermediateCode(code);
+            String[] results = new String[this.expressions.getList().size()];
+            for (int i = results.length - 1; i >= 0; i--) {
+                results[i] = code.popHeap();
+            }
+            for (int i = 0; i < results.length; i++) {
+                code.pushStack("param", "", "", results[i]);
+            }
         }
         code.pushStack("call", "", "", this.id);
     }
@@ -1219,6 +1227,8 @@ class MIPS {
         stringBuilder.append(".data\n");
         generateData(stringBuilder, variableTable);
         stringBuilder.append(".text\n");
+        stringBuilder.append("\tjal\tMain\n");
+        stringBuilder.append("\tli\t$v0,\t10\n\tsyscall\n");
         generateText(stringBuilder, code);
         try (PrintWriter writer = new PrintWriter("code.asm", "UTF-8")) {
             writer.println(stringBuilder.toString());
@@ -1331,14 +1341,34 @@ class MIPS {
                 stringBuilder.append("\tmove\t$a0,\t$" + direction + "\n\tsyscall");
                 break;
             case "read":
-                stringBuilder.append("\tor\t$" + direction + ",\t$" + left + ",\t$" + right);
+                stringBuilder.append("\tli\t$v0,\t5\n");
+                stringBuilder.append("\tsyscall\n");
+                stringBuilder.append("\tsw\t$v0,\t" + direction);
+                break;
+            case "call":
+                stringBuilder.append("\tjal\t" + directionTemporary);
+                break;
+            case "return":
+                stringBuilder.append("\tmove\t$sp,\t$fp\n");
+                stringBuilder.append("\tlw\t$fp,\t-4($sp)\n");
+                stringBuilder.append("\tlw\t$ra,\t-8($sp)\n");
+                // TODO calculate dynamically
+                stringBuilder.append("\tjr\t$ra");
                 break;
             case "label":
                 // TODO store everything in the stack
                 if (direction.charAt(0) == '~') {
                     direction = direction.substring(1);
+                    stringBuilder.append(direction + ":");
+                    stringBuilder.append("\tsw\t$fp,\t-4($sp)\n");
+                    stringBuilder.append("\tsw\t$ra,\t-8($sp)\n");
+                    // TODO reserve stack space for params and local variables
+                    stringBuilder.append("\tmove\t$fp,\t$sp\n");
+                    stringBuilder.append("\tsubi\t$sp,\t$sp,\t12\n");
+                    // Todo calculate offset dynamically
+                } else {
+                    stringBuilder.append(direction + ":");
                 }
-                stringBuilder.append(direction + ":");
                 break;
             case "goto":
                 stringBuilder.append("\tb\t" + direction);
