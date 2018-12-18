@@ -353,14 +353,17 @@ class ConditionalStatement extends StatementClass {
         String result = code.popHeap();
         String trueLabel = code.newLabel();
         String falseLabel = code.newLabel();
+        String endLabel = code.newLabel();
         code.pushStack("if>", result, "#0", trueLabel);
         code.pushStack("goto", "", "", falseLabel);
         code.pushStack("label", "", "", trueLabel);
         this.statementsIfTrue.generateIntermediateCode(code);
+        code.pushStack("goto", "", "", endLabel);
         code.pushStack("label", "", "", falseLabel);
         if (this.statementsIfFalse != null) {
             this.statementsIfFalse.generateIntermediateCode(code);
         }
+        code.pushStack("label", "", "", endLabel);
     }
 
     @Override
@@ -1272,13 +1275,32 @@ class MIPS {
                 stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
                 break;
             case "<":
-                stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
+                stringBuilder.append("\tslt\t$" + direction + ",\t$" + left + ",\t$" + right);
                 break;
             case ">":
-                stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
+                stringBuilder.append("\tsgt\t$" + direction + ",\t$" + left + ",\t$" + right);
                 break;
             case "=":
-                stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
+                stringBuilder.append("\tseq\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case "if<":
+                stringBuilder.append("\tbgt\t$" + right + ",\t$" + left + ",\t" + direction);
+                break;
+            case "if>":
+                stringBuilder.append("\tblt\t$" + right + ",\t$" + left + ",\t" + direction);
+                break;
+            case "and":
+                stringBuilder.append("\tand\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case "or":
+                stringBuilder.append("\tor\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case "write":
+                stringBuilder.append("\tli\t$v0,\t1\n");
+                stringBuilder.append("\tmove\t$a0,\t$" + direction + "\n\tsyscall");
+                break;
+            case "read":
+                stringBuilder.append("\tor\t$" + direction + ",\t$" + left + ",\t$" + right);
                 break;
             case "label":
                 // TODO store everything in the stack
