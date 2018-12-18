@@ -140,16 +140,19 @@ class ForStatement extends StatementClass {
     public void generateIntermediateCode(IntermediateCode code) {
         String forLabel = code.newLabel();
         String falseLabel = code.newLabel();
+        String temporary = code.newTemporary("integer", this.currentScope).toString();
         this.assignment.generateIntermediateCode(code);
         String variable = "~" + this.assignment.id;
+        code.pushStack("assign", "", variable, temporary);
         String forComparison = code.newTemporary("boolean", this.currentScope).toString();
         code.pushStack("label", "", "", forLabel);
-        code.pushStack("<", variable, "#" + this.integer, forComparison);
+        code.pushStack("<", temporary, "#" + this.integer, forComparison);
         code.pushStack("if<", forComparison, "#1", falseLabel);
         this.statements.generateIntermediateCode(code);
-        code.pushStack("+", variable, "#1", variable);
+        code.pushStack("+", temporary, "#1", temporary);
         code.pushStack("goto", "", "", forLabel);
         code.pushStack("label", "", "", falseLabel);
+        code.pushStack("assign", "", temporary, variable);
     }
 
     @Override
@@ -832,7 +835,7 @@ class FunctionCallExpression extends Expression {
             code.pushStack("param", "", "", results[i]);
         }
         code.pushStack("call", "", "", this.id);
-        code.pushHeap("return");
+        code.pushHeap("/return");
     }
 
     @Override
@@ -1238,7 +1241,7 @@ class MIPS {
             } else {
                 type = "error";
             }
-            stringBuilder.append(variable.id + ":\t" + type);
+            stringBuilder.append("\t" + variable.id + ":\t" + type);
         }
         for (int i = 0; i < variableTable.subTables.size(); i++) {
             generateData(stringBuilder, variableTable.subTables.get(i));
@@ -1249,19 +1252,78 @@ class MIPS {
         for (int i = 0; i < code.stack.size(); i++) {
             FourAddressCode temporary = code.stack.get(i);
             String operator = temporary.operator;
-            String left = temporary.left;
-            String right = temporary.right;
-            String direction = temporary.direction;
+            String leftTemporary = temporary.left;
+            String rightTemporary = temporary.right;
+            String directionTemporary = temporary.direction;
+            String left = leftTemporary.length() > 0 ? leftTemporary.substring(1) : "";
+            String right = rightTemporary.length() > 0 ? rightTemporary.substring(1) : "";
+            String direction = directionTemporary.length() > 0 ? directionTemporary.substring(1) : "";
             switch (operator) {
             case "+":
-                left = left.substring(1);
-                right = right.substring(1);
-                direction = direction.substring(1);
-                stringBuilder.append("add\t" + direction + ",\t" + left + ",\t" + right);
+                stringBuilder.append("\tadd\t$" + direction + ",\t$" + left + ",\t$" + right);
                 break;
             case "/":
+                stringBuilder.append("\tdiv\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case "*":
+                stringBuilder.append("\tmul\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case "-":
+                stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case "<":
+                stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case ">":
+                stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case "=":
+                stringBuilder.append("\tsub\t$" + direction + ",\t$" + left + ",\t$" + right);
+                break;
+            case "label":
+                // TODO store everything in the stack
+                if (direction.charAt(0) == '~') {
+                    direction = direction.substring(1);
+                }
+                stringBuilder.append(direction + ":");
+                break;
+            case "goto":
+                stringBuilder.append("\tb\t" + direction);
+                break;
+            case "assign":
+                char rightType = rightTemporary.charAt(0);
+                char directionType = directionTemporary.charAt(0);
+                switch (directionType) {
+                case '^':
+                    if (rightType == '^') {
+                        stringBuilder.append("\tmove\t$" + direction + ",\t" + right);
+                    } else if (rightType == '#' || rightType == '|') {
+                        if (rightType == '|' && right.equals("true")) {
+                            right = "1";
+                        } else if (rightType == '|' && right.equals("false")) {
+                            right = "0";
+                        }
+                        stringBuilder.append("\taddi\t$" + direction + ",\t" + "$zero,\t" + right);
+                    } else if (rightType == '~') {
+                        stringBuilder.append("\tlw\t$" + direction + ",\t" + right);
+                    } else {
+                        stringBuilder.append("Error unhandled: " + rightType);
+                    }
+                    break;
+                case '~':
+                    if (right.equals("return")) {
+                        stringBuilder.append("\tsw\t$v0,\t" + direction);
+                    } else {
+                        stringBuilder.append("\tsw\t$" + right + ",\t" + direction);
+                    }
+                    break;
+                default:
+                    stringBuilder.append("Error type: " + directionType);
+                    break;
+                }
                 break;
             default:
+                stringBuilder.append("Error unkown operator: " + operator);
                 break;
             }
             stringBuilder.append("\n");
