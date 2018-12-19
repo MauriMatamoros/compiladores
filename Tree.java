@@ -149,6 +149,7 @@ class ForStatement extends StatementClass {
         code.pushStack("<", temporary, "#" + this.integer, forComparison);
         code.pushStack("if=", forComparison, "#0", falseLabel);
         this.statements.generateIntermediateCode(code);
+        code.pushStack("assign", "", variable, temporary);
         code.pushStack("+", temporary, "#1", temporary);
         code.pushStack("assign", "", temporary, variable);
         code.pushStack("goto", "", "", forLabel);

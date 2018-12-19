@@ -26,19 +26,33 @@ Main:	sw	$fp,	-4($sp)
 	move	$fp,	$sp
 	subi	$sp,	$sp,	12
 
-	addi	$t2,	$zero,	0
+	addi	$t1,	$zero,	0
+	beq	$0,	$t1,	Label1
+	addi	$t2,	$zero,	5
 	sw	$t2,	x
+	lw	$t2,	x
+	li	$v0,	1
+	move	$a0,	$t2
+	syscall
+	b	Label2
 Label1:
-	lw	$t1,	x
-	slti	$t2,	$t1,	9
-	beq	$0,	$t2,	Label2
+	addi	$t2,	$zero,	1
+	beq	$0,	$t2,	Label3
+	addi	$t3,	$zero,	4
+	sw	$t3,	x
 	lw	$t3,	x
 	li	$v0,	1
 	move	$a0,	$t3
 	syscall
-	addi	$t1,	$t1,	1
-	sw	$t1,	x
-	b	Label1
+	b	Label4
+Label3:
+	addi	$t3,	$zero,	3
+	sw	$t3,	x
+	lw	$t3,	x
+	li	$v0,	1
+	move	$a0,	$t3
+	syscall
+Label4:
 Label2:
 	move	$sp,	$fp
 	lw	$fp,	-4($sp)
