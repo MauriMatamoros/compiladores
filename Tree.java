@@ -143,9 +143,9 @@ class ForStatement extends StatementClass {
         String temporary = code.newTemporary("integer", this.currentScope).toString();
         this.assignment.generateIntermediateCode(code);
         String variable = "~" + this.assignment.id;
-        code.pushStack("assign", "", variable, temporary);
         String forComparison = code.newTemporary("boolean", this.currentScope).toString();
         code.pushStack("label", "", "", forLabel);
+        code.pushStack("assign", "", variable, temporary);
         code.pushStack("<", temporary, "#" + this.integer, forComparison);
         code.pushStack("if=", forComparison, "#0", falseLabel);
         this.statements.generateIntermediateCode(code);
@@ -182,11 +182,14 @@ class WhileStatement extends StatementClass {
 
     public void generateIntermediateCode(IntermediateCode code) {
         String trueLabel = code.newLabel();
+        String falseLabel = code.newLabel();
         code.pushStack("label", "", "", trueLabel);
         this.statements.generateIntermediateCode(code);
         this.expression.generateIntermediateCode(code);
         String result = code.popHeap();
-        code.pushStack("if>", result, "#0", trueLabel);
+        code.pushStack("if=", result, "#0", falseLabel);
+        code.pushStack("goto", "", "", trueLabel);
+        code.pushStack("label", "", "", falseLabel);
     }
 
     @Override
@@ -359,12 +362,9 @@ class ConditionalStatement extends StatementClass {
     public void generateIntermediateCode(IntermediateCode code) {
         this.expression.generateIntermediateCode(code);
         String result = code.popHeap();
-        String trueLabel = code.newLabel();
         String falseLabel = code.newLabel();
         String endLabel = code.newLabel();
-        code.pushStack("if>", result, "#0", trueLabel);
-        code.pushStack("goto", "", "", falseLabel);
-        code.pushStack("label", "", "", trueLabel);
+        code.pushStack("if=", result, "#0", falseLabel);
         this.statementsIfTrue.generateIntermediateCode(code);
         code.pushStack("goto", "", "", endLabel);
         code.pushStack("label", "", "", falseLabel);
@@ -1142,7 +1142,7 @@ class IntermediateCode {
     public String popHeap() {
         if (this.heap.isEmpty()) {
             System.out.println("Heap is empty, you shouldn't see this message.");
-            this.pushStack("un", "mensaje", "de", "error");
+            this.pushStack("This", "is", "an", "error");
             return "";
         }
         String deleted = this.heap.get(this.heap.size() - 1);
@@ -1306,7 +1306,7 @@ class MIPS {
                 stringBuilder.append("\t" + slt + "\t$" + direction + ",\t" + left + ",\t" + right);
                 break;
             case ">":
-                String sgt = "slt";
+                String sgt = "sgt";
                 if (rightType == '^') {
                     right = "$" + right;
                 } else if (rightType == '#') {
@@ -1322,13 +1322,13 @@ class MIPS {
                 break;
             case "if<":
                 // TODO fix
-                stringBuilder.append("\tbgt\t" + right + ",\t$" + left + ",\t" + direction);
+                stringBuilder.append("\tblt\t" + right + ",\t$" + left + ",\t" + direction);
                 break;
             case "if=":
                 stringBuilder.append("\tbeq\t$" + right + ",\t$" + left + ",\t" + direction);
                 break;
             case "if>":
-                stringBuilder.append("\tblt\t$" + right + ",\t$" + left + ",\t" + direction);
+                stringBuilder.append("\tbgt\t$" + right + ",\t$" + left + ",\t" + direction);
                 break;
             case "and":
                 stringBuilder.append("\tand\t$" + direction + ",\t$" + left + ",\t$" + right);

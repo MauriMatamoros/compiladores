@@ -6,9 +6,8 @@ End Sub
 
 Sub Main()
     Dim x As Integer
-    Read x
-    Print x
-    Hello()
-    x = x + 1000
-    Print x
+    Dim z As Integer
+    For x = 0 To 9
+            Print x
+    Next
 End Sub
